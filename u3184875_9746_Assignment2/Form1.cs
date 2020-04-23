@@ -106,7 +106,7 @@ namespace u3184875_9746_Assignment2
         {
             int index = agentList.IndexOf(agent);
             agentList[index] = agent;
-            agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.mainJob.jobType);
+            agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
             agentList[index].listBox.agentLabel.Text = agent.name;
         }
 
@@ -124,7 +124,7 @@ namespace u3184875_9746_Assignment2
 
         private void button_AddAgent_Click(object sender, EventArgs e)
         {
-            Agent newAgent = new Agent($"Agent {agentList.Count}", new JobInfomation(Job.Blacksmith, 7));
+            Agent newAgent = new Agent($"Agent {agentList.Count}", new Job<JobBase>(JobName.Blacksmith, null, 5));
             agentList.Add(newAgent);
             panel_AgentList.Controls.Add(AgentPanel(newAgent));
         }
@@ -147,7 +147,7 @@ namespace u3184875_9746_Assignment2
             mainJob.Location = new Point(6, 13);
             mainJob.Size = new Size(50, 50);
             mainJob.SizeMode = PictureBoxSizeMode.Zoom;
-            mainJob.Image = IconPath.GetIcon(agent.mainJob.jobType);
+            mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
 
             Label agentLabel = new Label();
             agentBox.Controls.Add(agentLabel);
@@ -405,19 +405,19 @@ namespace u3184875_9746_Assignment2
         }
 
         //gets the job's site
-        public Site GetNodeByJob(Job job)
+        public Site GetNodeByJob(JobName job)
         {
             switch (job)
             {
-                case Job.Carpenter:
+                case JobName.Carpenter:
                     return siteMap.Single(s => s.nodeType == NodeType.CarpenterSite);
-                case Job.Logger:
+                case JobName.Logger:
                     return siteMap.Single(s => s.nodeType == NodeType.ForestSite);
-                case Job.Blacksmith:
+                case JobName.Blacksmith:
                     return siteMap.Single(s => s.nodeType == NodeType.BlacksmithSite);
-                case Job.Miner:
+                case JobName.Miner:
                     return siteMap.Single(s => s.nodeType == NodeType.MiningSite);
-                case Job.Constructor:
+                case JobName.Constructor:
                     return siteMap.Single(s => s.nodeType == NodeType.MainSite);
                 default:
                     return null;

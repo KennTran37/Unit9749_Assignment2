@@ -26,7 +26,7 @@ namespace u3184875_9746_Assignment2
     public enum MaterialType
     { Wood, Plank, Ore, Ingot }
 
-    public enum Job
+    public enum JobName
     { Carpenter, Logger, Blacksmith, Miner, Transporter, Constructor }
     #endregion
 
@@ -47,21 +47,21 @@ namespace u3184875_9746_Assignment2
         }
     }
 
-    public struct JobInfomation
-    {
-        public Job jobType;
-        public int skillLevel;
+    //public struct JobInfomation
+    //{
+    //    public JobName jobType;
+    //    public int skillLevel;
 
-        public JobInfomation(Job jobType, int skillLevel)
-        {
-            this.jobType = jobType;
-            this.skillLevel = skillLevel;
-        }
-    }
+    //    public JobInfomation(JobName jobType, int skillLevel)
+    //    {
+    //        this.jobType = jobType;
+    //        this.skillLevel = skillLevel;
+    //    }
+    //}
 
     public struct CurrentJob
     {
-        public Job job;
+        public JobName job;
         public Site site;
         public float jobProgress;
     }

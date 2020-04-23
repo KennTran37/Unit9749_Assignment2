@@ -18,21 +18,21 @@ namespace u3184875_9746_Assignment2
         public static Bitmap nodeIcon => Properties.Resources.Icon_Node;
         public static Bitmap agentIcon => Properties.Resources.Agent_Icon;
 
-        public static Bitmap GetIcon(Job job)
+        public static Bitmap GetIcon(JobName job)
         {
             switch (job)
             {
-                case Job.Carpenter:
+                case JobName.Carpenter:
                     return carpenter;
-                case Job.Logger:
+                case JobName.Logger:
                     return logger;
-                case Job.Blacksmith:
+                case JobName.Blacksmith:
                     return blacksmith;
-                case Job.Miner:
+                case JobName.Miner:
                     return miner;
-                case Job.Transporter:
+                case JobName.Transporter:
                     return transporter;
-                case Job.Constructor:
+                case JobName.Constructor:
                     return constructor;
             }
             return null;

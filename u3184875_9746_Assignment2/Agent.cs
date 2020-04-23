@@ -14,11 +14,13 @@ namespace u3184875_9746_Assignment2
         const float moveSpeed = 4f; // meters per second
 
         public CurrentJob currentJob;
-        public JobInfomation mainJob;
-        public JobInfomation[] subJobs;
+        //public JobInfomation mainJob;
+        //public JobInfomation[] subJobs;
+        public Job mainJob;
+        public Job[] subJobs;
 
         //this list holds jobs that the agent could not do and prevent the agent from going back to the same job after going to another job
-        public List<Job> visitedJobsList = new List<Job>();
+        public List<JobName> visitedJobsList = new List<JobName>();
 
         Dictionary<NodeType, Path> sitePaths = new Dictionary<NodeType, Path>();
         KeyValuePair<NodeType, Path> currentPath = new KeyValuePair<NodeType, Path>();
@@ -35,7 +37,7 @@ namespace u3184875_9746_Assignment2
         //used to determine which node to take that is within the angle
         const double viewAngle = 50;
 
-        public Agent(string name, JobInfomation mainJob)
+        public Agent(string name, Job mainJob)
         {
             this.name = name;
             this.mainJob = mainJob;
@@ -47,12 +49,12 @@ namespace u3184875_9746_Assignment2
         {
             agentIcon = Form1.inst.CreateAgentIcon();
 
-            visitedJobsList = new List<Job>();
-            Node jobSite = Form1.inst.GetNodeByJob(mainJob.jobType);
+            visitedJobsList = new List<JobName>();
+            Node jobSite = Form1.inst.GetNodeByJob(mainJob.jobName);
             if (jobSite != null)   //adding this checker incase it returns StorageSite which is the default returner
             {
                 currentNode = new CurrentNode(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                currentJob.job = mainJob.jobType;
+                currentJob.job = mainJob.jobName;
                 currentJob.site = Form1.inst.GetSiteByNodeType(currentNode.node.nodeType);
                 FindJob();
             }
@@ -60,28 +62,28 @@ namespace u3184875_9746_Assignment2
 
         void FindJob()
         {
-            if (visitedJobsList.Contains(mainJob.jobType) && subJobs != null)
+            if (visitedJobsList.Contains(mainJob.jobName) && subJobs != null)
             {
-                JobInfomation[] sortedSub = subJobs.OrderBy(o => o.skillLevel).ToArray();
+                Job[] sortedSub = subJobs.OrderBy(o => o.skillLevel).ToArray();
                 foreach (var job in sortedSub)
-                    if (!visitedJobsList.Contains(job.jobType))
+                    if (!visitedJobsList.Contains(job.jobName))
                     {
-                        Site jobSite = Form1.inst.GetNodeByJob(job.jobType);
+                        Site jobSite = Form1.inst.GetNodeByJob(job.jobName);
                         if (jobSite.nodeType != NodeType.StorageSite)
                         {
                             targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                            currentJob.job = job.jobType;
+                            currentJob.job = job.jobName;
                             break;
                         }
                     }
             }
             else
             {
-                Site jobSite = Form1.inst.GetNodeByJob(mainJob.jobType);
+                Site jobSite = Form1.inst.GetNodeByJob(mainJob.jobName);
                 if (jobSite.nodeType != NodeType.StorageSite)
                 {
                     targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                    currentJob.job = mainJob.jobType;
+                    currentJob.job = mainJob.jobName;
                 }
             }
 
@@ -103,13 +105,13 @@ namespace u3184875_9746_Assignment2
                 }
                 else
                 {
-                    if (currentJob.job == Job.Blacksmith || currentJob.job == Job.Carpenter)
+                    if (currentJob.job == JobName.Blacksmith || currentJob.job == JobName.Carpenter)
                         Task.Run(CraftingJob).Wait();
-                    else if (currentJob.job == Job.Logger || currentJob.job == Job.Miner)
+                    else if (currentJob.job == JobName.Logger || currentJob.job == JobName.Miner)
                         Task.Run(GatheringJob).Wait();
-                    else if (currentJob.job == Job.Transporter)
+                    else if (currentJob.job == JobName.Transporter)
                         Task.Run(TakeOutMaterials);
-                    else if (currentJob.job == Job.Constructor)
+                    else if (currentJob.job == JobName.Constructor)
                         Task.Run(ConstructorJob);
 
                     currentPath = new KeyValuePair<NodeType, Path>();
@@ -128,35 +130,35 @@ namespace u3184875_9746_Assignment2
 
         bool HasSpaceForMaterials()
         {
-            if (currentJob.job == Job.Transporter)
+            if (currentJob.job == JobName.Transporter)
                 return currentJob.site.inventory.wood.HasSpace() || currentJob.site.inventory.plank.HasSpace() || currentJob.site.inventory.ore.HasSpace() || currentJob.site.inventory.ingot.HasSpace();
-            if (currentJob.job == Job.Carpenter)
+            if (currentJob.job == JobName.Carpenter)
                 return currentJob.site.inventory.wood.HasSpace();
-            if (currentJob.job == Job.Blacksmith)
+            if (currentJob.job == JobName.Blacksmith)
                 return currentJob.site.inventory.ore.HasSpace();
-            if (currentJob.job == Job.Miner)
+            if (currentJob.job == JobName.Miner)
                 return currentJob.site.inventory.ore.HasSpace();
-            if (currentJob.job == Job.Logger)
+            if (currentJob.job == JobName.Logger)
                 return currentJob.site.inventory.wood.HasSpace();
-            if (currentJob.job == Job.Constructor)
+            if (currentJob.job == JobName.Constructor)
                 return currentJob.site.inventory.plank.HasAmount(5) && currentJob.site.inventory.ingot.HasAmount(5);
             return false;
         }
 
         async Task CraftingJob()
         {
-            if (currentJob.job == Job.Blacksmith)
+            if (currentJob.job == JobName.Blacksmith)
                 currentJob.site.inventory.ore.Current -= 5;
-            if (currentJob.job == Job.Carpenter)
+            if (currentJob.job == JobName.Carpenter)
                 currentJob.site.inventory.wood.Current -= 5;
             for (int i = 0; i < 5; i++)
             {
                 await Task.Delay(1000);
-                if (currentJob.job == Job.Blacksmith)
+                if (currentJob.job == JobName.Blacksmith)
                     if (!currentJob.site.inventory.ingot.TryPutInMaterial())
                         inventory.ingot.TryPutInMaterial();
 
-                if (currentJob.job == Job.Carpenter)
+                if (currentJob.job == JobName.Carpenter)
                     if (!currentJob.site.inventory.plank.TryPutInMaterial())
                         inventory.plank.TryPutInMaterial();
                 Form1.inst.SetLabelAngle("Crafting: " + i.ToString());
@@ -169,11 +171,11 @@ namespace u3184875_9746_Assignment2
             for (int i = 0; i < 5; i++)
             {
                 await Task.Delay(500);
-                if (currentJob.job == Job.Miner)
+                if (currentJob.job == JobName.Miner)
                     if (!currentJob.site.inventory.ore.TryPutInMaterial())
                         inventory.ore.TryPutInMaterial();
 
-                if (currentJob.job == Job.Logger)
+                if (currentJob.job == JobName.Logger)
                     if (!currentJob.site.inventory.wood.TryPutInMaterial())
                         inventory.wood.TryPutInMaterial();
                 Form1.inst.SetLabelAngle("Gathering: " + i.ToString());
@@ -479,6 +481,77 @@ namespace u3184875_9746_Assignment2
             {
                 Form1.inst.AgentSelected(null);
                 listBox.agentBox.BackColor = SystemColors.Control;
+            }
+        }
+    }
+
+    public struct Job
+    {
+        public Job(JobName jobName, JobBase jobClass, int skillLevel)
+        {
+            this.jobName = jobName;
+            this.jobClass = jobClass;
+            this.skillLevel = skillLevel;
+        }
+
+        public JobName jobName { get; private set; }
+        public JobBase jobClass { get; set; }
+        public int skillLevel { get; set; }
+    }
+
+    public abstract class JobBase
+    {
+        protected Inventory agentInventory;
+        protected Site jobSite;
+
+        protected const int takeOutNumMaterials = 5;
+        protected const int putInNumMaterials = 5;
+        protected const int jobTimeDelay = 1000; //ms
+
+        public JobBase(Inventory agentInventory, Site jobSite)
+        {
+            this.agentInventory = agentInventory;
+            this.jobSite = jobSite;
+        }
+
+        public abstract void ProgressJob();
+
+        public async Task TakeOutMaterial()
+        {
+            await Task.Delay(jobTimeDelay);
+        }
+    }
+
+    class BlackSmith : JobBase
+    {
+        public BlackSmith(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
+        public override void ProgressJob() => CraftIngot().Wait();
+
+        async Task CraftIngot()
+        {
+            jobSite.inventory.ore.Current -= 5;
+            for (int i = 0; i < takeOutNumMaterials; i++)
+            {
+                await Task.Delay(jobTimeDelay);
+                if (!jobSite.inventory.ingot.TryPutInMaterial())
+                    agentInventory.ingot.TryPutInMaterial();
+            }
+        }
+    }
+
+    class Carpenter : JobBase
+    {
+        public Carpenter(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
+        public override void ProgressJob() => CraftPlank().Wait();
+
+        async Task CraftPlank()
+        {
+            jobSite.inventory.wood.Current -= 5;
+            for (int i = 0; i < takeOutNumMaterials; i++)
+            {
+                await Task.Delay(jobTimeDelay);
+                if (!jobSite.inventory.plank.TryPutInMaterial())
+                    agentInventory.plank.TryPutInMaterial();
             }
         }
     }
