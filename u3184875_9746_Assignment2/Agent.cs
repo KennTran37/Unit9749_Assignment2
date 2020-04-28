@@ -11,258 +11,168 @@ namespace u3184875_9746_Assignment2
     {
         public string name = null;
         public bool isTraveling = false;
-        const float moveSpeed = 4f; // meters per second
+        const float moveSpeed = 10f; // meters per second
+        //slowest speed must be 4, any value lower then that then the calculations will be broken.
+        //this is because Point can only take in Integers and not decimal values
 
-        public CurrentJob currentJob;
-        //public JobInfomation mainJob;
-        //public JobInfomation[] subJobs;
-        public Job mainJob;
-        public Job[] subJobs;
+        protected Job currentJob;
+        public JobName GetCurrentJobName => currentJob.jobName;
+        protected Job mainJob;
+        public Job MainJob { get => mainJob; set => mainJob = value; }
+        Job[] subJobs;
+        public Job[] SubJobs { get => subJobs; set => subJobs = value; }
 
         //this list holds jobs that the agent could not do and prevent the agent from going back to the same job after going to another job
-        public List<JobName> visitedJobsList = new List<JobName>();
+        List<JobName> blackListJobs = new List<JobName>();
 
-        Dictionary<NodeType, Path> sitePaths = new Dictionary<NodeType, Path>();
-        KeyValuePair<NodeType, Path> currentPath = new KeyValuePair<NodeType, Path>();
-        public CurrentNode currentNode;
-        public Destination<Site> targetSite;
-        public Destination<Node> currentDestination;
+        Path currentPath;
+        List<Path> sitePaths = new List<Path>();
+        protected CurrentNode currentNode;
+        protected Destination<Site> targetSite;
+        Destination<Node> currentDestination;
 
-        public Inventory inventory;
+        protected Inventory inventory;
+        public Inventory Inventory { get => inventory; set => inventory = value; }
 
-        public PictureBox agentIcon;
+        public PictureBox agentIcon; //used to display the location of the agent when they are moving on the map
         public AgentListBox listBox;
         public ProgressBar siteProgressBar;
 
         //used to determine which node to take that is within the angle
         const double viewAngle = 50;
 
-        public Agent(string name, Job mainJob)
+        protected bool deliveringMaterial = false;
+
+        public Agent(string name)
         {
             this.name = name;
-            this.mainJob = mainJob;
-
-            inventory = new Inventory(new MaterialBox(null, null, null, 0, 10));
+            inventory = new Inventory();
+            mainJob = new Job(JobName.Blacksmith, new BlackSmith(inventory, Form1.inst.GetSiteByJob(JobName.Blacksmith)), 5);
         }
 
-        public void InitAgent()
+        public Agent(Agent agent)
+        {
+            name = agent.name;
+            mainJob = agent.mainJob;
+            subJobs = agent.subJobs;
+            inventory = agent.inventory;
+
+            agentIcon = agent.agentIcon;
+            listBox = agent.listBox;
+            siteProgressBar = agent.siteProgressBar;
+        }
+
+        public virtual void InitAgent()
         {
             agentIcon = Form1.inst.CreateAgentIcon();
 
-            visitedJobsList = new List<JobName>();
-            Node jobSite = Form1.inst.GetNodeByJob(mainJob.jobName);
-            if (jobSite != null)   //adding this checker incase it returns StorageSite which is the default returner
-            {
-                currentNode = new CurrentNode(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                currentJob.job = mainJob.jobName;
-                currentJob.site = Form1.inst.GetSiteByNodeType(currentNode.node.nodeType);
-                FindJob();
-            }
+            blackListJobs = new List<JobName>();
+            currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
+            currentJob = mainJob;
+            FindJob();
         }
 
-        void FindJob()
+        //Finding a job the agent can do based on their skill level if agent can't do its main job
+        protected virtual void FindJob()
         {
-            if (visitedJobsList.Contains(mainJob.jobName) && subJobs != null)
+            //if agent can't do main job search through the sub jobs
+            if (blackListJobs.Contains(mainJob.jobName) && subJobs != null)
             {
                 Job[] sortedSub = subJobs.OrderBy(o => o.skillLevel).ToArray();
                 foreach (var job in sortedSub)
-                    if (!visitedJobsList.Contains(job.jobName))
+                    if (!blackListJobs.Contains(job.jobName))
                     {
-                        Site jobSite = Form1.inst.GetNodeByJob(job.jobName);
+                        Site jobSite = Form1.inst.GetSiteByJob(job.jobName);
                         if (jobSite.nodeType != NodeType.StorageSite)
                         {
                             targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                            currentJob.job = job.jobName;
+                            currentJob = job;
                             break;
                         }
                     }
             }
             else
             {
-                Site jobSite = Form1.inst.GetNodeByJob(mainJob.jobName);
+                Site jobSite = Form1.inst.GetSiteByJob(mainJob.jobName);
                 if (jobSite.nodeType != NodeType.StorageSite)
                 {
                     targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                    currentJob.job = mainJob.jobName;
+                    currentJob = mainJob;
                 }
             }
 
             PathFinding();
         }
 
-        #region Job Progression
-        public void ProgressJob()
+        //Checks the conditions to do the job before doing it
+        protected virtual void StartJob()
         {
-            //Task.Run(PutInMaterials).Wait();
-
-            currentJob.site = Form1.inst.GetSiteByNodeType(targetSite.nodeTarget.nodeType);
-            if (currentJob.site.HasSpace())
+            if (deliveringMaterial)
             {
-                if (!HasSpaceForMaterials())
-                {
-                    TakeOutMaterials().Wait();
-                    //Take Materials to Storage Site
-                }
-                else
-                {
-                    if (currentJob.job == JobName.Blacksmith || currentJob.job == JobName.Carpenter)
-                        Task.Run(CraftingJob).Wait();
-                    else if (currentJob.job == JobName.Logger || currentJob.job == JobName.Miner)
-                        Task.Run(GatheringJob).Wait();
-                    else if (currentJob.job == JobName.Transporter)
-                        Task.Run(TakeOutMaterials);
-                    else if (currentJob.job == JobName.Constructor)
-                        Task.Run(ConstructorJob);
-
-                    currentPath = new KeyValuePair<NodeType, Path>();
-                    visitedJobsList.Clear();
-                    FindJob();
-                }
+                Task.Run(currentJob.jobClass.DeliverMaterial).Wait();
+                deliveringMaterial = false;
+                Form1.inst.SetLabelAngle("Finish Delivering");
+                FindJob();
             }
             else
             {
-                visitedJobsList.Add(currentJob.job);
-                if (visitedJobsList.Count == subJobs.Length + 1) //+1 is the mainJob
-                    visitedJobsList.Clear();
+                if (currentJob.jobClass.jobSite.HasSpace())
+                {
+                    if (!currentJob.jobClass.HasSpaceForMaterial())
+                    {
+                        Form1.inst.SetLabelAngle("Take out Materials");
+                        Task.Run(currentJob.jobClass.TakeOutMaterial).Wait();
+                        targetSite = new Destination<Site>(Form1.inst.GetSiteByNodeType(NodeType.StorageSite), Form1.inst.GetNodeLocation(NodeType.StorageSite));
+                        deliveringMaterial = true;
+                        PathFinding();
+                        return;
+                    }
+                    else
+                    {
+                        if (currentJob.jobClass.HasEnoughMaterial())
+                        {
+                            Task.Run(currentJob.jobClass.ProgressJob).Wait();
+                            Form1.inst.SetLabelAngle("Job Complete");
+                            blackListJobs.Clear();
+                            FindJob();
+                            return;
+                        }
+                    }
+                }
+
+                blackListJobs.Add(currentJob.jobName);
+                if (blackListJobs.Count == subJobs.Length + 1) //+1 is the mainJob
+                    blackListJobs.Clear();
+                Form1.inst.SetLabelAngle("Find new Job");
                 FindJob();
             }
         }
 
-        bool HasSpaceForMaterials()
-        {
-            if (currentJob.job == JobName.Transporter)
-                return currentJob.site.inventory.wood.HasSpace() || currentJob.site.inventory.plank.HasSpace() || currentJob.site.inventory.ore.HasSpace() || currentJob.site.inventory.ingot.HasSpace();
-            if (currentJob.job == JobName.Carpenter)
-                return currentJob.site.inventory.wood.HasSpace();
-            if (currentJob.job == JobName.Blacksmith)
-                return currentJob.site.inventory.ore.HasSpace();
-            if (currentJob.job == JobName.Miner)
-                return currentJob.site.inventory.ore.HasSpace();
-            if (currentJob.job == JobName.Logger)
-                return currentJob.site.inventory.wood.HasSpace();
-            if (currentJob.job == JobName.Constructor)
-                return currentJob.site.inventory.plank.HasAmount(5) && currentJob.site.inventory.ingot.HasAmount(5);
-            return false;
-        }
-
-        async Task CraftingJob()
-        {
-            if (currentJob.job == JobName.Blacksmith)
-                currentJob.site.inventory.ore.Current -= 5;
-            if (currentJob.job == JobName.Carpenter)
-                currentJob.site.inventory.wood.Current -= 5;
-            for (int i = 0; i < 5; i++)
-            {
-                await Task.Delay(1000);
-                if (currentJob.job == JobName.Blacksmith)
-                    if (!currentJob.site.inventory.ingot.TryPutInMaterial())
-                        inventory.ingot.TryPutInMaterial();
-
-                if (currentJob.job == JobName.Carpenter)
-                    if (!currentJob.site.inventory.plank.TryPutInMaterial())
-                        inventory.plank.TryPutInMaterial();
-                Form1.inst.SetLabelAngle("Crafting: " + i.ToString());
-            }
-            Form1.inst.SetLabelAngle("Comeplete Crafting");
-        }
-
-        async Task GatheringJob()
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                await Task.Delay(500);
-                if (currentJob.job == JobName.Miner)
-                    if (!currentJob.site.inventory.ore.TryPutInMaterial())
-                        inventory.ore.TryPutInMaterial();
-
-                if (currentJob.job == JobName.Logger)
-                    if (!currentJob.site.inventory.wood.TryPutInMaterial())
-                        inventory.wood.TryPutInMaterial();
-                Form1.inst.SetLabelAngle("Gathering: " + i.ToString());
-            }
-            Form1.inst.SetLabelAngle("Comeplete Gathering");
-        }
-
-        async Task TakeOutMaterials()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                await Task.Delay(100);
-                if (currentJob.site.nodeType == (NodeType.BlacksmithSite | NodeType.MiningSite | NodeType.StorageSite))
-                    TryTakeOutMat(currentJob.site.inventory.ore, inventory.ore);
-                if (currentJob.site.nodeType == (NodeType.CarpenterSite | NodeType.ForestSite | NodeType.StorageSite))
-                    TryTakeOutMat(currentJob.site.inventory.wood, inventory.wood);
-                if (currentJob.site.nodeType == (NodeType.StorageSite | NodeType.MainSite))
-                {
-                    TryTakeOutMat(currentJob.site.inventory.ingot, inventory.ingot);
-                    TryTakeOutMat(currentJob.site.inventory.plank, inventory.plank);
-                }
-            }
-        }
-
-        void TryTakeOutMat(MaterialBox siteMat, MaterialBox agentMat)
-        {
-            if (!siteMat.HasAmount(0) || !agentMat.HasSpace())
-                return;
-            agentMat.Current++;
-            siteMat.Current--;
-        }
-
-        async Task PutInMaterials()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                await Task.Delay(100);
-                Form1.inst.SetLabelAngle("Put in: " + i.ToString());
-                if (currentJob.site.nodeType == (NodeType.BlacksmithSite | NodeType.MiningSite | NodeType.StorageSite))
-                    TryPutInMat(currentJob.site.inventory.ore, inventory.ore);
-                if (currentJob.site.nodeType == (NodeType.CarpenterSite | NodeType.ForestSite | NodeType.StorageSite))
-                    TryPutInMat(currentJob.site.inventory.wood, inventory.wood);
-                if (currentJob.site.nodeType == (NodeType.StorageSite | NodeType.MainSite))
-                {
-                    TryPutInMat(currentJob.site.inventory.ingot, inventory.ingot);
-                    TryPutInMat(currentJob.site.inventory.plank, inventory.plank);
-                }
-            }
-            Form1.inst.SetLabelAngle("Complete Putting In Material");
-        }
-
-        void TryPutInMat(MaterialBox siteMat, MaterialBox agentMat)
-        {
-            if (!siteMat.HasSpace() || !agentMat.HasAmount(0))
-                return;
-            agentMat.Current--;
-            siteMat.Current++;
-        }
-
-        async Task ConstructorJob()
-        {
-            await Task.Delay(1);
-        }
-        #endregion
-
         #region Path Finding
-        void PathFinding()
+        //Checks whether the agent is already at the targetSite, has already created a found to the targetSite or will create a new path to the targetSite
+        protected void PathFinding()
         {
-            foreach (var path in sitePaths)
-                if (path.Key == currentNode.node.nodeType && path.Value.destination.nodeType == targetSite.nodeTarget.nodeType)
-                    currentPath = path;
-
+            //If agent is already at the target site
             if (currentNode.node == targetSite.nodeTarget)
-                ProgressJob();
+                StartJob();
             else
             {
-                if (!currentPath.Equals(new KeyValuePair<NodeType, Path>()))
+                currentPath = new Path();
+                foreach (var path in sitePaths)
+                    if (path.start == currentNode.node && path.end == targetSite.nodeTarget)
+                        currentPath = path;
+
+                if (!currentPath.Equals(new Path()))
                 {
-                    Form1.inst.SetLabelAngle("Use Existing Path");
+                    Form1.inst.SetLabelAngle($"Use Existing Path: {currentPath.start.nodeType} - {currentPath.end.nodeType}");
                     TravelExistingPath();
                 }
                 else
                 {
-                    Path newPath = new Path(targetSite.nodeTarget, new List<Node>());
+                    Path newPath = new Path(currentNode.node, targetSite.nodeTarget, new List<Node>());
                     newPath.nodes.Add(currentNode.node);
-                    currentPath = new KeyValuePair<NodeType, Path>(currentNode.node.nodeType, newPath);
-                    Form1.inst.SetLabelAngle("Travel New Path");
+                    currentPath = newPath;
+                    Form1.inst.SetLabelAngle($"Travel New Path: {currentPath.start.nodeType} - {targetSite.nodeTarget.nodeType}");
                     FindNewPath();
                 }
             }
@@ -270,7 +180,7 @@ namespace u3184875_9746_Assignment2
 
         void TravelExistingPath()
         {
-            List<Node> path = currentPath.Value.nodes;
+            List<Node> path = currentPath.nodes;
             for (int i = 0; i < path.Count; i++)
             {
                 Point destPoint = Form1.inst.GetNodeLocation(path[i].nodeType);
@@ -280,7 +190,7 @@ namespace u3184875_9746_Assignment2
                 currentNode = new CurrentNode(path[i], destPoint);
             }
             Form1.inst.SetLabelAngle("Existing Path Complete");
-            ProgressJob();
+            StartJob();
         }
 
         void FindNewPath()
@@ -292,35 +202,36 @@ namespace u3184875_9746_Assignment2
             Task.Run(MoveToDestination).Wait();
 
             currentNode = new CurrentNode(closestNode, destPoint);
-            currentPath.Value.nodes.Add(closestNode);
+            currentPath.nodes.Add(closestNode);
             if (currentNode.node.nodeType == targetSite.nodeTarget.nodeType)
             {
                 Form1.inst.SetLabelAngle("New Path Complete");
-                sitePaths.Add(currentPath.Key, currentPath.Value);
-                ProgressJob();
+                sitePaths.Add(currentPath);
+                StartJob();
                 return;
             }
+            //checking if currentNode is a site and creating a path to the site from start
             if (Form1.inst.CurrentNodeIsSite(currentNode.node.nodeType))
             {
-                KeyValuePair<NodeType, Path> existingPath = new KeyValuePair<NodeType, Path>();
+                Path existingPath = new Path();
                 foreach (var path in sitePaths)
-                    if (path.Key == currentPath.Key && path.Value.destination == closestNode)
+                    if (path.start == currentPath.start && path.end == closestNode)
                         existingPath = path;
 
-                if (!existingPath.Equals(new KeyValuePair<NodeType, Path>()))
+                if (!existingPath.Equals(new Path()))
                 {
-                    if (PathCost(currentPath.Value) < PathCost(existingPath.Value))
+                    if (PathCost(currentPath) < PathCost(existingPath))
                     {
-                        Path nodePath = currentPath.Value;
-                        nodePath.destination = closestNode;
-                        existingPath = new KeyValuePair<NodeType, Path>(currentPath.Key, nodePath);
+                        Path nodePath = currentPath;
+                        nodePath.end = closestNode;
+                        existingPath = nodePath;
                     }
                 }
                 else
                 {
-                    Path nodePath = currentPath.Value;
-                    nodePath.destination = closestNode;
-                    sitePaths.Add(currentPath.Key, nodePath);
+                    Path nodePath = currentPath;
+                    nodePath.end = closestNode;
+                    sitePaths.Add(nodePath);  //change dictinary to llist
                 }
             }
 
@@ -346,19 +257,23 @@ namespace u3184875_9746_Assignment2
             Edge[] connectedEdges = Form1.inst.GetConnectedEdges(currentNode.node);
             foreach (Edge edge in connectedEdges)
             {
+                //checking of the connected edge has already been visited before checking of the edge is within view
                 Node otherPoint = edge.GetOtherPoint(currentNode.node);
-                if (otherPoint.nodeType == targetSite.nodeTarget.nodeType)
-                    return otherPoint;
-                double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
-                if (angleToPoint > leftAngle)
+                if (!currentPath.nodes.Contains(otherPoint))
                 {
-                    //in the situation where rightAngle is over 360, we would need to add 360 to angleToNeighbour as it's angle would be in the range of 0 - 90
-                    //for example: rightAngle = 390 and angleToNeighbour = 20, adding 360 to angleToNeighbour == 380 making it in range of viewAngle
-                    //it is also to prevent the checker from always returning true as angleToNeighbour will always be smaller then rightAngle
-                    if (rightAngle > 360)
-                        angleToPoint += 360;
-                    if (angleToPoint < rightAngle)
-                        inViewEdges.Add(edge);
+                    if (otherPoint.nodeType == targetSite.nodeTarget.nodeType)
+                        return otherPoint;
+                    double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
+                    if (angleToPoint > leftAngle)
+                    {
+                        //in the situation where rightAngle is over 360, we would need to add 360 to angleToNeighbour as it's angle would be in the range of 0 - 90
+                        //for example: rightAngle = 390 and angleToNeighbour = 20, adding 360 to angleToNeighbour == 380 making it in range of viewAngle
+                        //it is also to prevent the checker from always returning true as angleToNeighbour will always be smaller then rightAngle
+                        if (rightAngle > 360)
+                            angleToPoint += 360;
+                        if (angleToPoint < rightAngle)
+                            inViewEdges.Add(edge);
+                    }
                 }
             }
 
@@ -377,11 +292,14 @@ namespace u3184875_9746_Assignment2
                 foreach (Edge edge in connectedEdges)
                 {
                     Node otherPoint = edge.GetOtherPoint(currentNode.node);
-                    double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
-                    if (Math.Abs(angleToTargetSite - angleToPoint) < Math.Abs(angleToTargetSite - closestAngle))
+                    if (!currentPath.nodes.Contains(otherPoint))
                     {
-                        closestAngle = angleToPoint;
-                        shortestEdge = edge;
+                        double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
+                        if (Math.Abs(angleToTargetSite - angleToPoint) < Math.Abs(angleToTargetSite - closestAngle))
+                        {
+                            closestAngle = angleToPoint;
+                            shortestEdge = edge;
+                        }
                     }
                 }
             }
@@ -485,74 +403,137 @@ namespace u3184875_9746_Assignment2
         }
     }
 
-    public struct Job
+    public class Transporter : Agent
     {
-        public Job(JobName jobName, JobBase jobClass, int skillLevel)
+        MaterialType materialToDeliver;
+
+        //similar to the visitedJobList, this list will hold the sites that the agent could not take materials out from
+        List<NodeType> blacklistSites = new List<NodeType>();
+
+        public Transporter(Agent agent) : base(agent) { }
+
+        public override void InitAgent()
         {
-            this.jobName = jobName;
-            this.jobClass = jobClass;
-            this.skillLevel = skillLevel;
+            agentIcon = Form1.inst.CreateAgentIcon();
+
+            blacklistSites = new List<NodeType>();
+            currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
+            FindJob();
         }
 
-        public JobName jobName { get; private set; }
-        public JobBase jobClass { get; set; }
-        public int skillLevel { get; set; }
-    }
-
-    public abstract class JobBase
-    {
-        protected Inventory agentInventory;
-        protected Site jobSite;
-
-        protected const int takeOutNumMaterials = 5;
-        protected const int putInNumMaterials = 5;
-        protected const int jobTimeDelay = 1000; //ms
-
-        public JobBase(Inventory agentInventory, Site jobSite)
+        //assigning the target site for the agent to go to
+        protected override void FindJob()
         {
-            this.agentInventory = agentInventory;
-            this.jobSite = jobSite;
-        }
-
-        public abstract void ProgressJob();
-
-        public async Task TakeOutMaterial()
-        {
-            await Task.Delay(jobTimeDelay);
-        }
-    }
-
-    class BlackSmith : JobBase
-    {
-        public BlackSmith(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override void ProgressJob() => CraftIngot().Wait();
-
-        async Task CraftIngot()
-        {
-            jobSite.inventory.ore.Current -= 5;
-            for (int i = 0; i < takeOutNumMaterials; i++)
+            if (deliveringMaterial)
             {
-                await Task.Delay(jobTimeDelay);
-                if (!jobSite.inventory.ingot.TryPutInMaterial())
-                    agentInventory.ingot.TryPutInMaterial();
+                NodeType currentNodeType = currentNode.node.nodeType;
+                if (currentNodeType == NodeType.StorageSite)
+                {
+                    if (materialToDeliver == MaterialType.Ingot || materialToDeliver == MaterialType.Plank)
+                        SetTargetSite(NodeType.MainSite);
+                    else if (materialToDeliver == MaterialType.Wood)
+                        SetTargetSite(NodeType.CarpenterSite);
+                    else if (materialToDeliver == MaterialType.Ore)
+                        SetTargetSite(NodeType.BlacksmithSite);
+                }
+                else if (currentNodeType == NodeType.BlacksmithSite && materialToDeliver == MaterialType.Ingot)
+                    SetTargetSite(NodeType.StorageSite);
+                else if (currentNodeType == NodeType.CarpenterSite && materialToDeliver == MaterialType.Plank)
+                    SetTargetSite(NodeType.StorageSite);
+                else if (currentNodeType == NodeType.ForestSite && materialToDeliver == MaterialType.Wood)
+                    SetTargetSite(NodeType.CarpenterSite);
+                else if (currentNodeType == NodeType.MiningSite && materialToDeliver == MaterialType.Ore)
+                    SetTargetSite(NodeType.BlacksmithSite);
+            }
+            else if (blacklistSites.Contains(currentNode.node.nodeType)) //if agent isnt at the current site to deliver materials
+                SetTargetSite(NodeType.StorageSite); //if the current site has been blacklisted go back to the storage site
+            PathFinding();
+        }
+
+        void SetTargetSite(NodeType type)
+        {
+            mainJob.jobClass.jobSite = Form1.inst.GetSiteByNodeType(type);
+            targetSite = new Destination<Site>(Form1.inst.GetSiteByNodeType(type), Form1.inst.GetNodeLocation(type));
+        }
+
+        //Checks if the agent is at the site to deliver or take out materials
+        protected override void StartJob()
+        {
+            if (!deliveringMaterial)
+            {
+                //if site is blacksmith, carpenter, forest or mining
+                if (mainJob.SiteNodeType != NodeType.StorageSite && mainJob.jobClass.HasEnoughMaterial())
+                    SetMaterialToDeliver();
+                else if (mainJob.SiteNodeType == NodeType.StorageSite)
+                {   //find which material has the highest amount to take out
+                    Site storageSite = mainJob.jobClass.jobSite;
+                    MaterialBox material = new MaterialBox();
+                    MaterialBox[] inventoryArray = { storageSite.inventory.ingot, storageSite.inventory.ore, storageSite.inventory.wood, storageSite.inventory.plank };
+                    foreach (var mat in inventoryArray)
+                        if (mat.HasAmount(mainJob.jobClass.TakeOutAmount))
+                            if (material.Current < mat.Current)
+                                material = mat;
+                    //if a material box was not selected
+                    if (material.Equals(new MaterialBox()))
+                    {
+                        blacklistSites.Add(currentNode.node.nodeType);
+                        FindJob();
+                        return;
+                    }
+                    materialToDeliver = material.materialType;
+                }
+                else //if site does not have enough materials to take out and site is not storage site
+                {
+                    blacklistSites.Add(currentNode.node.nodeType);
+                    FindJob();
+                    return;
+                }
+
+                mainJob.jobClass.TakeOutMaterial(materialToDeliver).Wait();
+                deliveringMaterial = true;
+            }
+            else
+            {
+                mainJob.jobClass.DeliverMaterial().Wait();
+                blacklistSites.Clear();
+                deliveringMaterial = false;
+            }
+            FindJob();
+        }
+
+        void SetMaterialToDeliver()
+        {
+            switch (currentNode.node.nodeType)
+            {
+                case NodeType.BlacksmithSite:
+                    materialToDeliver = MaterialType.Ingot;
+                    break;
+                case NodeType.CarpenterSite:
+                    materialToDeliver = MaterialType.Plank;
+                    break;
+                case NodeType.ForestSite:
+                    materialToDeliver = MaterialType.Wood;
+                    break;
+                case NodeType.MiningSite:
+                    materialToDeliver = MaterialType.Ore;
+                    break;
             }
         }
     }
 
-    class Carpenter : JobBase
+    public class Constructor : Agent
     {
-        public Carpenter(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override void ProgressJob() => CraftPlank().Wait();
+        public Constructor(string name) : base(name) { }
+        public Constructor(Agent agent) : base(agent) { }
 
-        async Task CraftPlank()
+        protected override void FindJob()
         {
-            jobSite.inventory.wood.Current -= 5;
-            for (int i = 0; i < takeOutNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (!jobSite.inventory.plank.TryPutInMaterial())
-                    agentInventory.plank.TryPutInMaterial();
-            }
+            base.FindJob();
+        }
+
+        protected override void StartJob()
+        {
+            base.StartJob();
         }
     }
 }

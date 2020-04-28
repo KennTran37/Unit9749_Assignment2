@@ -31,41 +31,6 @@ namespace u3184875_9746_Assignment2
     #endregion
 
     #region Structs
-    public struct Inventory
-    {
-        public MaterialBox wood;
-        public MaterialBox plank;
-        public MaterialBox ore;
-        public MaterialBox ingot;
-
-        public Inventory(MaterialBox newBox)
-        {
-            wood = newBox;
-            plank = newBox;
-            ore = newBox;
-            ingot = newBox;
-        }
-    }
-
-    //public struct JobInfomation
-    //{
-    //    public JobName jobType;
-    //    public int skillLevel;
-
-    //    public JobInfomation(JobName jobType, int skillLevel)
-    //    {
-    //        this.jobType = jobType;
-    //        this.skillLevel = skillLevel;
-    //    }
-    //}
-
-    public struct CurrentJob
-    {
-        public JobName job;
-        public Site site;
-        public float jobProgress;
-    }
-
     public struct CurrentNode
     {
         public Node node;
@@ -91,12 +56,14 @@ namespace u3184875_9746_Assignment2
 
     public struct Path
     {
-        public Node destination;
+        public Node start;
+        public Node end;
         public List<Node> nodes;
 
-        public Path(Node destination, List<Node> nodes)
+        public Path(Node start, Node end, List<Node> nodes)
         {
-            this.destination = destination;
+            this.start = start;
+            this.end = end;
             this.nodes = nodes;
         }
     }

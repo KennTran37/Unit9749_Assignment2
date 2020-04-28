@@ -41,7 +41,7 @@ namespace u3184875_9746_Assignment2
             agentBox.Controls.Add(icon);
             icon.Location = new Point(4, 10);
             icon.SizeMode = PictureBoxSizeMode.Zoom;
-            icon.Image = IconPath.GetIcon(agent.currentJob.job);
+            icon.Image = IconPath.GetIcon(agent.GetCurrentJobName);
             icon.Size = new Size(40, 40);
 
             Label name = new Label();

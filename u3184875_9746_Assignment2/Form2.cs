@@ -25,15 +25,15 @@ namespace u3184875_9746_Assignment2
             InitializeComponent();
 
             this.agent = agent;
-            mainJob = agent.mainJob;
-            if (agent.subJobs != null)
-                subJobs = agent.subJobs.ToList();
+            mainJob = agent.MainJob;
+            if (agent.SubJobs != null)
+                subJobs = agent.SubJobs.ToList();
             else
                 subJobs = new List<Job>();
 
             textBox_AgentName.Text = agent.name;
 
-            HighlightMainJob(agent.mainJob);
+            HighlightMainJob(agent.MainJob);
             foreach (var job in subJobs)
                 HighlightSubJob(job);
 
@@ -168,11 +168,16 @@ namespace u3184875_9746_Assignment2
 
             if (job == JobName.Transporter)
             {
+                agent = new Transporter(agent);
                 subJobs.Clear();
                 ClearAllJobs();
             }
             else if (SubJobsContains(job))
                 subJobs.Remove(subJobs.Single(s => s.jobName == job));
+
+            if (mainJob.jobName == JobName.Transporter && job != JobName.Transporter)
+                if (agent.GetType().Equals(typeof(Transporter)))
+                    agent = new Agent(agent);
 
             ClearOldMainJob(mainJob.jobName);
             mainJob = new Job(job, SetJobType(job), bar.Value);
@@ -232,8 +237,8 @@ namespace u3184875_9746_Assignment2
             {
                 groupBox_Ore.Show();
                 groupBox_Ore.Location = new Point(6, yPoint);
-                numeric_MaxOre.Value = agent.inventory.ore.Max;
-                numeric_CurOre.Value = agent.inventory.ore.Current;
+                numeric_MaxOre.Value = agent.Inventory.ore.Max;
+                numeric_CurOre.Value = agent.Inventory.ore.Current;
                 numeric_CurOre.Maximum = numeric_MaxOre.Value;
                 yPoint += 45;
             }
@@ -244,8 +249,8 @@ namespace u3184875_9746_Assignment2
             {
                 groupBox_Ingot.Show();
                 groupBox_Ingot.Location = new Point(6, yPoint);
-                numeric_MaxIngot.Value = agent.inventory.ingot.Max;
-                numeric_CurIngot.Value = agent.inventory.ingot.Current;
+                numeric_MaxIngot.Value = agent.Inventory.ingot.Max;
+                numeric_CurIngot.Value = agent.Inventory.ingot.Current;
                 numeric_CurIngot.Maximum = numeric_MaxIngot.Value;
                 yPoint += 45;
             }
@@ -256,8 +261,8 @@ namespace u3184875_9746_Assignment2
             {
                 groupBox_Wood.Show();
                 groupBox_Wood.Location = new Point(6, yPoint);
-                numeric_MaxWood.Value = agent.inventory.wood.Max;
-                numeric_CurWood.Value = agent.inventory.wood.Current;
+                numeric_MaxWood.Value = agent.Inventory.wood.Max;
+                numeric_CurWood.Value = agent.Inventory.wood.Current;
                 numeric_CurWood.Maximum = numeric_MaxWood.Value;
                 yPoint += 45;
             }
@@ -268,8 +273,8 @@ namespace u3184875_9746_Assignment2
             {
                 groupBox_Plank.Show();
                 groupBox_Plank.Location = new Point(6, yPoint);
-                numeric_MaxPlank.Value = agent.inventory.plank.Max;
-                numeric_CurPlank.Value = agent.inventory.plank.Current;
+                numeric_MaxPlank.Value = agent.Inventory.plank.Max;
+                numeric_CurPlank.Value = agent.Inventory.plank.Current;
                 numeric_CurPlank.Maximum = numeric_MaxPlank.Value;
             }
             else
@@ -288,8 +293,8 @@ namespace u3184875_9746_Assignment2
 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
-            agent.mainJob = mainJob;
-            agent.subJobs = subJobs.ToArray();
+            agent.MainJob = mainJob;
+            agent.SubJobs = subJobs.ToArray();
             Form1.inst.UpdateAgent(agent);
         }
 
@@ -298,17 +303,17 @@ namespace u3184875_9746_Assignment2
             switch (job)
             {
                 case JobName.Carpenter:
-                    return new Carpenter(agent.inventory, Form1.inst.GetNodeByJob(job));
+                    return new Carpenter(agent.Inventory, Form1.inst.GetSiteByJob(job));
                 case JobName.Logger:
-                    break;
+                    return new Logger(agent.Inventory, Form1.inst.GetSiteByJob(job));
                 case JobName.Blacksmith:
-                    return new BlackSmith(agent.inventory, Form1.inst.GetNodeByJob(job));
+                    return new BlackSmith(agent.Inventory, Form1.inst.GetSiteByJob(job));
                 case JobName.Miner:
-                    break;
+                    return new Miner(agent.Inventory, Form1.inst.GetSiteByJob(job));
                 case JobName.Transporter:
-                    break;
+                    return new Delivery(agent.Inventory, Form1.inst.GetSiteByJob(job));
                 case JobName.Constructor:
-                    break;
+                    return new Builder(agent.Inventory, Form1.inst.GetSiteByJob(job));
             }
             return null;
         }
@@ -316,32 +321,32 @@ namespace u3184875_9746_Assignment2
         private void textBox_AgentName_TextChanged(object sender, EventArgs e) => agent.name = textBox_AgentName.Text;
 
         #region Material Value Change
-        private void numeric_CurOre_ValueChanged(object sender, EventArgs e) => agent.inventory.ore.Current = (int)numeric_CurOre.Value;
+        private void numeric_CurOre_ValueChanged(object sender, EventArgs e) => agent.Inventory.ore.Current = (int)numeric_CurOre.Value;
         private void numeric_MaxOre_ValueChanged(object sender, EventArgs e)
         {
             numeric_CurOre.Maximum = numeric_MaxOre.Value;
-            agent.inventory.ore.Max = (int)numeric_MaxOre.Value;
+            agent.Inventory.ore.Max = (int)numeric_MaxOre.Value;
         }
 
-        private void numeric_CurIngot_ValueChanged(object sender, EventArgs e) => agent.inventory.ingot.Current = (int)numeric_CurIngot.Value;
+        private void numeric_CurIngot_ValueChanged(object sender, EventArgs e) => agent.Inventory.ingot.Current = (int)numeric_CurIngot.Value;
         private void numeric_MaxIngot_ValueChanged(object sender, EventArgs e)
         {
             numeric_CurIngot.Maximum = numeric_MaxIngot.Value;
-            agent.inventory.ingot.Max = (int)numeric_MaxIngot.Value;
+            agent.Inventory.ingot.Max = (int)numeric_MaxIngot.Value;
         }
 
-        private void numeric_CurWood_ValueChanged(object sender, EventArgs e) => agent.inventory.wood.Current = (int)numeric_CurWood.Value;
+        private void numeric_CurWood_ValueChanged(object sender, EventArgs e) => agent.Inventory.wood.Current = (int)numeric_CurWood.Value;
         private void numeric_MaxWood_ValueChanged(object sender, EventArgs e)
         {
             numeric_CurWood.Maximum = numeric_MaxWood.Value;
-            agent.inventory.wood.Max = (int)numeric_MaxWood.Value;
+            agent.Inventory.wood.Max = (int)numeric_MaxWood.Value;
         }
 
-        private void numeric_CurPlank_ValueChanged(object sender, EventArgs e) => agent.inventory.plank.Current = (int)numeric_CurPlank.Value;
+        private void numeric_CurPlank_ValueChanged(object sender, EventArgs e) => agent.Inventory.plank.Current = (int)numeric_CurPlank.Value;
         private void numeric_MaxPlank_ValueChanged(object sender, EventArgs e)
         {
             numeric_CurPlank.Maximum = numeric_MaxPlank.Value;
-            agent.inventory.wood.Max = (int)numeric_MaxPlank.Value;
+            agent.Inventory.wood.Max = (int)numeric_MaxPlank.Value;
         }
         #endregion
     }

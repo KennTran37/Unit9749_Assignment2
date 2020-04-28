@@ -106,7 +106,7 @@ namespace u3184875_9746_Assignment2
         {
             int index = agentList.IndexOf(agent);
             agentList[index] = agent;
-            agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
+            agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.MainJob.jobName);
             agentList[index].listBox.agentLabel.Text = agent.name;
         }
 
@@ -124,7 +124,7 @@ namespace u3184875_9746_Assignment2
 
         private void button_AddAgent_Click(object sender, EventArgs e)
         {
-            Agent newAgent = new Agent($"Agent {agentList.Count}", new Job<JobBase>(JobName.Blacksmith, null, 5));
+            Agent newAgent = new Agent($"Agent {agentList.Count}");
             agentList.Add(newAgent);
             panel_AgentList.Controls.Add(AgentPanel(newAgent));
         }
@@ -147,7 +147,7 @@ namespace u3184875_9746_Assignment2
             mainJob.Location = new Point(6, 13);
             mainJob.Size = new Size(50, 50);
             mainJob.SizeMode = PictureBoxSizeMode.Zoom;
-            mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
+            mainJob.Image = IconPath.GetIcon(agent.MainJob.jobName);
 
             Label agentLabel = new Label();
             agentBox.Controls.Add(agentLabel);
@@ -253,16 +253,16 @@ namespace u3184875_9746_Assignment2
             switch (matType)
             {
                 case MaterialType.Wood:
-                    site.inventory.wood = new MaterialBox(materialBox, icon, count);
+                    site.inventory.wood = new MaterialBox(materialBox, icon, count, MaterialType.Wood);
                     break;
                 case MaterialType.Plank:
-                    site.inventory.plank = new MaterialBox(materialBox, icon, count);
+                    site.inventory.plank = new MaterialBox(materialBox, icon, count, MaterialType.Plank);
                     break;
                 case MaterialType.Ore:
-                    site.inventory.ore = new MaterialBox(materialBox, icon, count);
+                    site.inventory.ore = new MaterialBox(materialBox, icon, count, MaterialType.Ore);
                     break;
                 case MaterialType.Ingot:
-                    site.inventory.ingot = new MaterialBox(materialBox, icon, count);
+                    site.inventory.ingot = new MaterialBox(materialBox, icon, count, MaterialType.Ingot);
                     break;
             }
             return materialBox;
@@ -405,7 +405,7 @@ namespace u3184875_9746_Assignment2
         }
 
         //gets the job's site
-        public Site GetNodeByJob(JobName job)
+        public Site GetSiteByJob(JobName job)
         {
             switch (job)
             {
@@ -496,11 +496,14 @@ namespace u3184875_9746_Assignment2
                 label_Angle.Text = text;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button_Start_Click(object sender, EventArgs e)
         {
-            ThreadStart startThread = new ThreadStart(agentList[0].InitAgent);
-            Thread newThread = new Thread(startThread);
-            newThread.Start();
+            for (int i = 0; i < agentList.Count; i++)
+            {
+                ThreadStart startThread = new ThreadStart(agentList[i].InitAgent);
+                Thread newThread = new Thread(startThread);
+                newThread.Start();
+            }
         }
     }
 }

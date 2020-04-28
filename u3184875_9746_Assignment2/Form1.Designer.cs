@@ -83,7 +83,7 @@ namespace u3184875_9746_Assignment2
             this.label_Angle = new System.Windows.Forms.Label();
             this.button_Left = new System.Windows.Forms.Button();
             this.button_Right = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.button_Start = new System.Windows.Forms.Button();
             this.groupBox_Agents.SuspendLayout();
             this.groupBox_Sites.SuspendLayout();
             this.groupBox_EdgeBox.SuspendLayout();
@@ -743,22 +743,22 @@ namespace u3184875_9746_Assignment2
             this.button_Right.TabIndex = 9;
             this.button_Right.UseVisualStyleBackColor = false;
             // 
-            // button1
+            // button_Start
             // 
-            this.button1.Location = new System.Drawing.Point(7, 534);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 10;
-            this.button1.Text = "Start";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button_Start.Location = new System.Drawing.Point(7, 534);
+            this.button_Start.Name = "button_Start";
+            this.button_Start.Size = new System.Drawing.Size(75, 23);
+            this.button_Start.TabIndex = 10;
+            this.button_Start.Text = "Start";
+            this.button_Start.UseVisualStyleBackColor = true;
+            this.button_Start.Click += new System.EventHandler(this.button_Start_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1264, 715);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.button_Start);
             this.Controls.Add(this.button_Left);
             this.Controls.Add(this.button_Right);
             this.Controls.Add(this.label_Angle);
@@ -854,7 +854,7 @@ namespace u3184875_9746_Assignment2
         private Label label_Angle;
         private Button button_Left;
         private Button button_Right;
-        private Button button1;
+        private Button button_Start;
     }
 }
 
