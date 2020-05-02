@@ -486,12 +486,6 @@ namespace u3184875_9746_Assignment2
             return agentIcon;
         }
 
-        //public void SetLabelAngle(string text)
-        //{
-        //    if (label_Angle.InvokeRequired) label_Angle.Invoke(new Action<string>(SetLabelAngle), text);
-        //    else label_Angle.Text = text;
-        //}
-
         //Starts the programs
         private void button_Start_Click(object sender, EventArgs e)
         {
@@ -501,6 +495,11 @@ namespace u3184875_9746_Assignment2
                 Thread newThread = new Thread(startThread);
                 newThread.Start();
             }
+        }
+
+        private void button_Stop_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

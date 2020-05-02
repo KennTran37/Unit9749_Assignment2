@@ -78,12 +78,15 @@ namespace u3184875_9746_Assignment2
             this.label_EdgeForestTwo = new System.Windows.Forms.Label();
             this.label_EdgeGateOne = new System.Windows.Forms.Label();
             this.label_EdgeNorthStreetTwo = new System.Windows.Forms.Label();
-            this.button_Center = new System.Windows.Forms.Button();
-            this.button_Point = new System.Windows.Forms.Button();
-            this.label_Angle = new System.Windows.Forms.Label();
-            this.button_Left = new System.Windows.Forms.Button();
-            this.button_Right = new System.Windows.Forms.Button();
             this.button_Start = new System.Windows.Forms.Button();
+            this.button_Stop = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
             this.groupBox_Agents.SuspendLayout();
             this.groupBox_Sites.SuspendLayout();
             this.groupBox_EdgeBox.SuspendLayout();
@@ -106,6 +109,7 @@ namespace u3184875_9746_Assignment2
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_NodeWestCorner)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_NodeResidentStreet)).BeginInit();
             this.panel_Map.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel_AgentList
@@ -700,52 +704,9 @@ namespace u3184875_9746_Assignment2
             this.label_EdgeNorthStreetTwo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.label_EdgeNorthStreetTwo.Click += new System.EventHandler(this.label_EdgeNorthStreetTwo_Click);
             // 
-            // button_Center
-            // 
-            this.button_Center.Location = new System.Drawing.Point(657, 558);
-            this.button_Center.Name = "button_Center";
-            this.button_Center.Size = new System.Drawing.Size(20, 20);
-            this.button_Center.TabIndex = 5;
-            this.button_Center.UseVisualStyleBackColor = true;
-            // 
-            // button_Point
-            // 
-            this.button_Point.Location = new System.Drawing.Point(64, 683);
-            this.button_Point.Name = "button_Point";
-            this.button_Point.Size = new System.Drawing.Size(20, 20);
-            this.button_Point.TabIndex = 6;
-            this.button_Point.UseVisualStyleBackColor = true;
-            // 
-            // label_Angle
-            // 
-            this.label_Angle.AutoSize = true;
-            this.label_Angle.Location = new System.Drawing.Point(12, 667);
-            this.label_Angle.Name = "label_Angle";
-            this.label_Angle.Size = new System.Drawing.Size(37, 13);
-            this.label_Angle.TabIndex = 7;
-            this.label_Angle.Text = "Angle:";
-            // 
-            // button_Left
-            // 
-            this.button_Left.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.button_Left.Location = new System.Drawing.Point(12, 683);
-            this.button_Left.Name = "button_Left";
-            this.button_Left.Size = new System.Drawing.Size(20, 20);
-            this.button_Left.TabIndex = 8;
-            this.button_Left.UseVisualStyleBackColor = false;
-            // 
-            // button_Right
-            // 
-            this.button_Right.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-            this.button_Right.Location = new System.Drawing.Point(38, 683);
-            this.button_Right.Name = "button_Right";
-            this.button_Right.Size = new System.Drawing.Size(20, 20);
-            this.button_Right.TabIndex = 9;
-            this.button_Right.UseVisualStyleBackColor = false;
-            // 
             // button_Start
             // 
-            this.button_Start.Location = new System.Drawing.Point(7, 534);
+            this.button_Start.Location = new System.Drawing.Point(13, 629);
             this.button_Start.Name = "button_Start";
             this.button_Start.Size = new System.Drawing.Size(75, 23);
             this.button_Start.TabIndex = 10;
@@ -753,17 +714,95 @@ namespace u3184875_9746_Assignment2
             this.button_Start.UseVisualStyleBackColor = true;
             this.button_Start.Click += new System.EventHandler(this.button_Start_Click);
             // 
+            // button_Stop
+            // 
+            this.button_Stop.Location = new System.Drawing.Point(13, 664);
+            this.button_Stop.Name = "button_Stop";
+            this.button_Stop.Size = new System.Drawing.Size(75, 23);
+            this.button_Stop.TabIndex = 11;
+            this.button_Stop.Text = "Stop";
+            this.button_Stop.UseVisualStyleBackColor = true;
+            this.button_Stop.Click += new System.EventHandler(this.button_Stop_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(6, 16);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(315, 55);
+            this.label1.TabIndex = 12;
+            this.label1.Text = "Assignment 2";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
+            this.label3.Location = new System.Drawing.Point(327, 25);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(125, 31);
+            this.label3.TabIndex = 13;
+            this.label3.Text = "GOAP AI";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(15, 71);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(113, 13);
+            this.label4.TabIndex = 14;
+            this.label4.Text = "u3184875 Kenny Tran";
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.label4);
+            this.groupBox1.Controls.Add(this.label3);
+            this.groupBox1.Location = new System.Drawing.Point(13, 513);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(464, 96);
+            this.groupBox1.TabIndex = 15;
+            this.groupBox1.TabStop = false;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(94, 634);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(108, 13);
+            this.label5.TabIndex = 17;
+            this.label5.Text = "Start the construction";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(236, 78);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(222, 13);
+            this.label7.TabIndex = 15;
+            this.label7.Text = "A simulation of agents constructing something";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(94, 669);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(420, 13);
+            this.label8.TabIndex = 19;
+            this.label8.Text = "Stops the construction and resets all the agent\'s position and the constructions " +
+    "progress";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1264, 715);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.button_Stop);
             this.Controls.Add(this.button_Start);
-            this.Controls.Add(this.button_Left);
-            this.Controls.Add(this.button_Right);
-            this.Controls.Add(this.label_Angle);
-            this.Controls.Add(this.button_Point);
-            this.Controls.Add(this.button_Center);
             this.Controls.Add(this.panel_Map);
             this.Controls.Add(this.groupBox_Sites);
             this.Controls.Add(this.groupBox_Agents);
@@ -796,6 +835,8 @@ namespace u3184875_9746_Assignment2
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_NodeResidentStreet)).EndInit();
             this.panel_Map.ResumeLayout(false);
             this.panel_Map.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -849,12 +890,15 @@ namespace u3184875_9746_Assignment2
         private System.Windows.Forms.Label label_EdgeGateTwo;
         private System.Windows.Forms.Label label_EdgeForestTwo;
         private Button button_RemoveAgent;
-        private Button button_Center;
-        private Button button_Point;
-        private Label label_Angle;
-        private Button button_Left;
-        private Button button_Right;
         private Button button_Start;
+        private Button button_Stop;
+        private Label label1;
+        private Label label3;
+        private Label label4;
+        private GroupBox groupBox1;
+        private Label label5;
+        private Label label7;
+        private Label label8;
     }
 }
 

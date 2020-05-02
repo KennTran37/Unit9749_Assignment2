@@ -431,53 +431,34 @@ namespace u3184875_9746_Assignment2
         {
             if (deliveringMaterial)
             {   //checking which site the agent is at and go towards its target site
-                NodeType currentNodeType = currentNode.node.nodeType;
-                switch (currentNodeType)
-                {   //if agent is at storage site, check which material the agent is delivering
-                    case NodeType.StorageSite:
-                        switch (MaterialToDeliver)
-                        {
-                            case MaterialType.Wood:
-                                SetTargetSite(NodeType.CarpenterSite);
-                                break;
-                            case MaterialType.Ore:
-                                SetTargetSite(NodeType.BlacksmithSite);
-                                break;
-                            case MaterialType.Plank:
-                            case MaterialType.Ingot:
-                                SetTargetSite(NodeType.MainSite);
-                                break;
-                        }
-                        break;
-                    case NodeType.BlacksmithSite:
-                    case NodeType.CarpenterSite:
-                        SetTargetSite(NodeType.StorageSite);
-                        break;
-                    case NodeType.ForestSite:
+                switch (MaterialToDeliver)
+                {
+                    case MaterialType.Wood:
                         SetTargetSite(NodeType.CarpenterSite);
                         break;
-                    case NodeType.MiningSite:
+                    case MaterialType.Ore:
                         SetTargetSite(NodeType.BlacksmithSite);
                         break;
-                }
-            }
-            else if (blacklistSites.Contains(currentNode.node.nodeType))
-            {
-                //go to the first available site which has not been blacklisted
-                foreach (Site site in Form1.inst.TakeOutSites)
-                    if (!blacklistSites.Contains(site.nodeType))
-                    {
-                        SetTargetSite(site.nodeType);
+                    case MaterialType.Plank:
+                    case MaterialType.Ingot:
+                        if (currentNode.node.nodeType == NodeType.StorageSite)
+                            SetTargetSite(NodeType.MainSite);
+                        else
+                            SetTargetSite(NodeType.StorageSite);
                         break;
-                    }
-
-                //if all sites have been blacklisted
-                if (blacklistSites.Count == Form1.inst.TakeOutSites.Length)
-                {   //clear the list and go back to storage site
-                    blacklistSites.Clear();
-                    SetTargetSite(NodeType.StorageSite);
                 }
+                PathFinding();
+                return;
             }
+
+            //if all sites have been blacklisted
+            if (blacklistSites.Count == Form1.inst.TakeOutSites.Length)
+            {   //clear the list and go back to storage site
+                blacklistSites.Clear();
+                SetTargetSite(NodeType.StorageSite);
+            }
+            else  //go to the first available site which has not been blacklisted
+                SetTargetSite(Form1.inst.TakeOutSites.First(f => !blacklistSites.Contains(f.nodeType)).nodeType);
             PathFinding();
         }
 
@@ -498,6 +479,7 @@ namespace u3184875_9746_Assignment2
                 else if (CanSelectMaterial())
                 {
                     Task.Run(mainJob.jobClass.TakeOutMaterial).Wait();
+                    //blacklist the site so that the agent doesn't go back to it
                     blacklistSites.Add(currentNode.node.nodeType);
                     deliveringMaterial = true;
                 }
@@ -514,7 +496,7 @@ namespace u3184875_9746_Assignment2
         bool CanSelectMaterial()
         {
             if (mainJob.SiteNodeType != NodeType.StorageSite && mainJob.jobClass.HasEnoughMaterial())
-            {
+            {   //if site has space for materials and dpending on the site, assign the materials to take out
                 switch (currentNode.node.nodeType)
                 {
                     case NodeType.BlacksmithSite:
