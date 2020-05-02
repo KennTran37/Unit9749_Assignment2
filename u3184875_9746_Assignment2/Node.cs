@@ -143,7 +143,7 @@ namespace u3184875_9746_Assignment2
         }
 
         public bool HasSpace() => current < max;
-        public bool HasAmount(int value) => current > value;
+        public bool HasAmount(int value) => current >= value;
 
         public bool TryPutInMaterial()
         {

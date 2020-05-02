@@ -19,10 +19,13 @@ namespace u3184875_9746_Assignment2
         Job mainJob;
         List<Job> subJobs = new List<Job>();
         Agent agent;
+        int index;
 
-        public Form2(in Agent agent)
+        public Form2(in Agent agent, int index)
         {
             InitializeComponent();
+
+            this.index = index;
 
             this.agent = agent;
             mainJob = agent.MainJob;
@@ -295,7 +298,7 @@ namespace u3184875_9746_Assignment2
         {
             agent.MainJob = mainJob;
             agent.SubJobs = subJobs.ToArray();
-            Form1.inst.UpdateAgent(agent);
+            Form1.inst.UpdateAgent(agent, index);
         }
 
         JobBase SetJobType(JobName job)
@@ -303,17 +306,17 @@ namespace u3184875_9746_Assignment2
             switch (job)
             {
                 case JobName.Carpenter:
-                    return new Carpenter(agent.Inventory, Form1.inst.GetSiteByJob(job));
+                    return new Carpenter(agent.Inventory, Form1.inst.GetSite(job));
                 case JobName.Logger:
-                    return new Logger(agent.Inventory, Form1.inst.GetSiteByJob(job));
+                    return new Logger(agent.Inventory, Form1.inst.GetSite(job));
                 case JobName.Blacksmith:
-                    return new BlackSmith(agent.Inventory, Form1.inst.GetSiteByJob(job));
+                    return new BlackSmith(agent.Inventory, Form1.inst.GetSite(job));
                 case JobName.Miner:
-                    return new Miner(agent.Inventory, Form1.inst.GetSiteByJob(job));
+                    return new Miner(agent.Inventory, Form1.inst.GetSite(job));
                 case JobName.Transporter:
-                    return new Delivery(agent.Inventory, Form1.inst.GetSiteByJob(job));
+                    return new Delivery(agent.Inventory, Form1.inst.GetSite(job));
                 case JobName.Constructor:
-                    return new Builder(agent.Inventory, Form1.inst.GetSiteByJob(job));
+                    return new Builder(agent.Inventory, Form1.inst.GetSite(job));
             }
             return null;
         }

@@ -31,21 +31,21 @@ namespace u3184875_9746_Assignment2
         protected const int collectNumMaterials = 5;
         protected const int jobTimeDelay = 1000; //ms
         protected bool takeMatFromAgentInvent = false;
+        public MaterialType MaterialToDeliver { get; set; }
 
         public JobBase(Inventory agentInventory, Site jobSite)
         {
             this.agentInventory = agentInventory;
             this.jobSite = jobSite;
-            storageSite = Form1.inst.GetSiteByNodeType(NodeType.StorageSite);
+            storageSite = Form1.inst.GetSite(NodeType.StorageSite);
         }
 
         public abstract Task ProgressJob();
         //Checks if the site has enough space for the materials that agent will put in
-        public abstract bool HasSpaceForMaterial();
-        public abstract Task DeliverMaterial();
-        public abstract Task TakeOutMaterial();
+        public abstract bool SpaceForAgentMaterial();
+        public virtual Task DeliverMaterial() => null;
+        public virtual Task TakeOutMaterial() => null;
         //used by crafters to see if both the site's and agent's inventory has enough materials to craft
-        public virtual Task TakeOutMaterial(MaterialType type) => null;
         public virtual bool HasEnoughMaterial() => true;
     }
 
@@ -56,40 +56,20 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                Form1.inst.SetLabelAngle($"Task: {i}");
                 await Task.Delay(jobTimeDelay);
+                //if agent should take out materials from inventory is False and site has materials || take out materials from inventory is True and agent's inventory has materials
                 if (!takeMatFromAgentInvent && jobSite.inventory.ore.TryTakeOutMaterial() || takeMatFromAgentInvent && agentInventory.ore.TryTakeOutMaterial())
                     if (!jobSite.inventory.ingot.TryPutInMaterial())
                         agentInventory.ingot.TryPutInMaterial();
             }
         }
 
-        public override bool HasSpaceForMaterial() => jobSite.inventory.ingot.HasSpace();
+        public override bool SpaceForAgentMaterial() => jobSite.HasSpace() && jobSite.inventory.ingot.HasSpace();
         public override bool HasEnoughMaterial()
         {
-            if (jobSite.inventory.ore.HasAmount(takeOutNumMaterials))
+            if (!jobSite.inventory.ore.HasAmount(takeOutNumMaterials))
                 return takeMatFromAgentInvent = agentInventory.ore.HasAmount(takeOutNumMaterials);
             return true;
-        }
-
-        public override async Task TakeOutMaterial()
-        {
-            for (int i = 0; i < takeOutNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (jobSite.inventory.ingot.TryTakeOutMaterial())
-                    agentInventory.ingot.TryPutInMaterial();
-            }
-        }
-
-        public override async Task DeliverMaterial()
-        {
-            for (int i = 0; i < putInNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (storageSite.inventory.ingot.TryPutInMaterial())
-                    agentInventory.ingot.TryTakeOutMaterial();
-            }
         }
     }
 
@@ -100,40 +80,20 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                Form1.inst.SetLabelAngle($"Task: {i}");
                 await Task.Delay(jobTimeDelay);
-                if (!takeMatFromAgentInvent && jobSite.inventory.ore.TryTakeOutMaterial() || takeMatFromAgentInvent && agentInventory.wood.TryTakeOutMaterial())
+                //if agent should take out materials from inventory is False and site has materials || take out materials from inventory is True and agent's inventory has materials
+                if (!takeMatFromAgentInvent && jobSite.inventory.wood.TryTakeOutMaterial() || takeMatFromAgentInvent && agentInventory.wood.TryTakeOutMaterial())
                     if (!jobSite.inventory.plank.TryPutInMaterial())
                         agentInventory.plank.TryPutInMaterial();
             }
         }
 
-        public override bool HasSpaceForMaterial() => jobSite.inventory.wood.HasSpace();
+        public override bool SpaceForAgentMaterial() => jobSite.HasSpace() && jobSite.inventory.plank.HasSpace();
         public override bool HasEnoughMaterial()
         {
-            if (jobSite.inventory.wood.HasAmount(takeOutNumMaterials))
+            if (!jobSite.inventory.wood.HasAmount(takeOutNumMaterials))
                 return takeMatFromAgentInvent = (agentInventory.wood.HasAmount(takeOutNumMaterials));
             return true;
-        }
-
-        public override async Task TakeOutMaterial()
-        {
-            for (int i = 0; i < takeOutNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (jobSite.inventory.plank.TryTakeOutMaterial())
-                    agentInventory.plank.TryPutInMaterial();
-            }
-        }
-
-        public override async Task DeliverMaterial()
-        {
-            for (int i = 0; i < putInNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (storageSite.inventory.plank.TryPutInMaterial())
-                    agentInventory.plank.TryTakeOutMaterial();
-            }
         }
     }
 
@@ -144,34 +104,14 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < collectNumMaterials; i++)
             {
-                Form1.inst.SetLabelAngle($"Task: {i}");
                 await Task.Delay(jobTimeDelay);
-                if (!jobSite.inventory.ore.TryPutInMaterial())
-                    agentInventory.ore.TryPutInMaterial();
+                //if there isn't any space within the site's inventory
+                if (!jobSite.inventory.wood.TryPutInMaterial())
+                    agentInventory.wood.TryPutInMaterial(); //put it into the agent's inventory
             }
         }
 
-        public override bool HasSpaceForMaterial() => jobSite.inventory.wood.HasSpace();
-
-        public override async Task TakeOutMaterial()
-        {
-            for (int i = 0; i < takeOutNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (jobSite.inventory.wood.TryTakeOutMaterial())
-                    agentInventory.wood.TryPutInMaterial();
-            }
-        }
-
-        public override async Task DeliverMaterial()
-        {
-            for (int i = 0; i < putInNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (storageSite.inventory.wood.TryPutInMaterial())
-                    agentInventory.wood.TryTakeOutMaterial();
-            }
-        }
+        public override bool SpaceForAgentMaterial() => jobSite.HasSpace() && jobSite.inventory.wood.HasSpace();
     }
 
     class Miner : JobBase
@@ -181,42 +121,25 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < collectNumMaterials; i++)
             {
-                Form1.inst.SetLabelAngle($"Task: {i}");
                 await Task.Delay(jobTimeDelay);
+                //if there isn't any space within the site's inventory
                 if (!jobSite.inventory.ore.TryPutInMaterial())
-                    agentInventory.ore.TryPutInMaterial();
+                    agentInventory.ore.TryPutInMaterial(); //put it into the agent's inventory
             }
         }
 
-        public override bool HasSpaceForMaterial() => jobSite.inventory.ore.HasSpace();
-
-        public override async Task TakeOutMaterial()
-        {
-            for (int i = 0; i < takeOutNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (jobSite.inventory.ore.TryTakeOutMaterial())
-                    agentInventory.ore.TryPutInMaterial();
-            }
-        }
-
-        public override async Task DeliverMaterial()
-        {
-            for (int i = 0; i < putInNumMaterials; i++)
-            {
-                await Task.Delay(jobTimeDelay);
-                if (storageSite.inventory.ore.TryPutInMaterial())
-                    agentInventory.ore.TryTakeOutMaterial();
-            }
-        }
+        public override bool SpaceForAgentMaterial() => jobSite.HasSpace() && jobSite.inventory.ore.HasSpace();
     }
 
     class Delivery : JobBase
     {
         public Delivery(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-
         public override Task ProgressJob() => null;
-        public override bool HasSpaceForMaterial() => true;
+
+        public override bool SpaceForAgentMaterial()
+        {
+            return jobSite.HasSpace() && jobSite.inventory.plank.HasSpace();
+        }
 
         public override bool HasEnoughMaterial()
         {
@@ -234,14 +157,12 @@ namespace u3184875_9746_Assignment2
             return true;
         }
 
-        public override Task TakeOutMaterial() => null;
-
-        public override async Task TakeOutMaterial(MaterialType type)
+        public override async Task TakeOutMaterial()
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
                 await Task.Delay(jobTimeDelay);
-                switch (type)
+                switch (MaterialToDeliver)
                 {
                     case MaterialType.Wood:
                         if (jobSite.inventory.wood.TryTakeOutMaterial())
@@ -265,28 +186,28 @@ namespace u3184875_9746_Assignment2
 
         public override async Task DeliverMaterial()
         {
-            NodeType type = jobSite.nodeType;
             for (int i = 0; i < putInNumMaterials; i++)
             {
                 await Task.Delay(jobTimeDelay);
-                if (type == NodeType.CarpenterSite || type == NodeType.StorageSite)
+                switch (MaterialToDeliver)
                 {
-                    if (jobSite.inventory.wood.TryPutInMaterial())
-                        agentInventory.wood.TryTakeOutMaterial();
+                    case MaterialType.Wood:
+                        if (agentInventory.wood.TryTakeOutMaterial())
+                            jobSite.inventory.wood.TryPutInMaterial();
+                        break;
+                    case MaterialType.Plank:
+                        if (agentInventory.plank.TryTakeOutMaterial())
+                            jobSite.inventory.plank.TryPutInMaterial();
+                        break;
+                    case MaterialType.Ore:
+                        if (agentInventory.ore.TryTakeOutMaterial())
+                            jobSite.inventory.ore.TryPutInMaterial();
+                        break;
+                    case MaterialType.Ingot:
+                        if (agentInventory.ingot.TryTakeOutMaterial())
+                            jobSite.inventory.ingot.TryPutInMaterial();
+                        break;
                 }
-                else if (type == NodeType.BlacksmithSite || type == NodeType.StorageSite)
-                {
-                    if (jobSite.inventory.ore.TryPutInMaterial())
-                        agentInventory.ore.TryTakeOutMaterial();
-                }
-                else if (type == NodeType.StorageSite || type == NodeType.MainSite)
-                {
-                    if (jobSite.inventory.ingot.TryPutInMaterial())
-                        agentInventory.ingot.TryTakeOutMaterial();
-                    if (jobSite.inventory.plank.TryPutInMaterial())
-                        agentInventory.wood.TryTakeOutMaterial();
-                }
-
             }
         }
     }
@@ -299,7 +220,7 @@ namespace u3184875_9746_Assignment2
             throw new NotImplementedException();
         }
 
-        public override bool HasSpaceForMaterial()
+        public override bool SpaceForAgentMaterial()
         {
             throw new NotImplementedException();
         }

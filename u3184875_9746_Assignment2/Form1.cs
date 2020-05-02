@@ -43,85 +43,90 @@ namespace u3184875_9746_Assignment2
         List<Agent> agentList = new List<Agent>();
 
         Edge currentEdgeToEdit;
-        Agent selectedAgent = null;
+        Agent selectedAgent = null; //used to highlight the current selected agent for the User to remove
 
         #region Setup Methods
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        public Form1() => InitializeComponent();
 
         private void Form1_Load(object sender, EventArgs e)
         {
             inst = this;
-            Task.Run(CreateEdges).Wait();
+            CreateEdges();
 
             for (int i = 0; i < siteMap.Length; i++)
                 panel_SitesList.Controls.Add(SitePanel(siteMap[i], i));
         }
 
-        async Task CreateEdges()
+        //assigning the edge's cost and connected nodes
+        void CreateEdges()
         {
             edgeMap = new Edge[]
             {
-               new Edge(EdgeName.GateOne,5, nodeMap[await nodeIndex(NodeType.SouthGateNode)], nodeMap[await nodeIndex(NodeType.ForestSouthNode)]),
-               new Edge(EdgeName.GateTwo,5, nodeMap[await nodeIndex(NodeType.ForestCenterNode)], nodeMap[await nodeIndex(NodeType.SouthGateNode)]),
-               new Edge(EdgeName.GateThree,7, siteMap[await nodeIndex(NodeType.ForestSite)], nodeMap[await nodeIndex(NodeType.NorthGateNode)]),
+               new Edge(EdgeName.GateOne,5, nodeMap[nodeIndex(NodeType.SouthGateNode)], nodeMap[nodeIndex(NodeType.ForestSouthNode)]),
+               new Edge(EdgeName.GateTwo,5, nodeMap[nodeIndex(NodeType.ForestCenterNode)], nodeMap[nodeIndex(NodeType.SouthGateNode)]),
+               new Edge(EdgeName.GateThree,7, siteMap[nodeIndex(NodeType.ForestSite)], nodeMap[nodeIndex(NodeType.NorthGateNode)]),
 
-               new Edge(EdgeName.ResidentStreetOne,6, siteMap[await nodeIndex(NodeType.BlacksmithSite)], nodeMap[await nodeIndex(NodeType.SouthGateNode)]),
-               new Edge(EdgeName.ResidentStreetTwo,11, nodeMap[await nodeIndex(NodeType.ResidentStreetNode)], siteMap[await nodeIndex(NodeType.BlacksmithSite)]),
-               new Edge(EdgeName.ResidentStreetThree,9, siteMap[await nodeIndex(NodeType.MainSite)], nodeMap[await nodeIndex(NodeType.ResidentStreetNode)]),
+               new Edge(EdgeName.ResidentStreetOne,6, siteMap[nodeIndex(NodeType.BlacksmithSite)], nodeMap[nodeIndex(NodeType.SouthGateNode)]),
+               new Edge(EdgeName.ResidentStreetTwo,11, nodeMap[nodeIndex(NodeType.ResidentStreetNode)], siteMap[nodeIndex(NodeType.BlacksmithSite)]),
+               new Edge(EdgeName.ResidentStreetThree,9, siteMap[nodeIndex(NodeType.MainSite)], nodeMap[nodeIndex(NodeType.ResidentStreetNode)]),
 
-               new Edge(EdgeName.InterStreetOne,6, nodeMap[await nodeIndex(NodeType.InterStreetNode)], siteMap[await nodeIndex(NodeType.BlacksmithSite)]),
-               new Edge(EdgeName.InterStreetTwo,6, nodeMap[await nodeIndex(NodeType.InterStreetNode)], siteMap[await nodeIndex(NodeType.StorageSite)]),
-               new Edge(EdgeName.InterStreetThree,2, siteMap[await nodeIndex(NodeType.StorageSite)], siteMap[await nodeIndex(NodeType.MainSite)]),
-               new Edge(EdgeName.InterStreetFour,2, siteMap[await nodeIndex(NodeType.StorageSite)], nodeMap[await nodeIndex(NodeType.WestCornerNode)]),
+               new Edge(EdgeName.InterStreetOne,6, nodeMap[nodeIndex(NodeType.InterStreetNode)], siteMap[nodeIndex(NodeType.BlacksmithSite)]),
+               new Edge(EdgeName.InterStreetTwo,6, nodeMap[nodeIndex(NodeType.InterStreetNode)], siteMap[nodeIndex(NodeType.StorageSite)]),
+               new Edge(EdgeName.InterStreetThree,2, siteMap[nodeIndex(NodeType.StorageSite)], siteMap[nodeIndex(NodeType.MainSite)]),
+               new Edge(EdgeName.InterStreetFour,2, siteMap[nodeIndex(NodeType.StorageSite)], nodeMap[nodeIndex(NodeType.WestCornerNode)]),
 
-               new Edge(EdgeName.ForestOne,5, nodeMap[await nodeIndex(NodeType.ForestSouthNode)], siteMap[await nodeIndex(NodeType.MiningSite)]),
-               new Edge(EdgeName.ForestTwo,6, siteMap[await nodeIndex(NodeType.MiningSite)], nodeMap[await nodeIndex(NodeType.ForestCenterNode)]),
-               new Edge(EdgeName.ForestThree,2, nodeMap[await nodeIndex(NodeType.ForestCenterNode)], nodeMap[await nodeIndex(NodeType.ForestNorthNode)]),
-               new Edge(EdgeName.ForestFour,2, nodeMap[await nodeIndex(NodeType.ForestNorthNode)], siteMap[await nodeIndex(NodeType.ForestSite)]),
+               new Edge(EdgeName.ForestOne,5, nodeMap[nodeIndex(NodeType.ForestSouthNode)], siteMap[nodeIndex(NodeType.MiningSite)]),
+               new Edge(EdgeName.ForestTwo,6, siteMap[nodeIndex(NodeType.MiningSite)], nodeMap[nodeIndex(NodeType.ForestCenterNode)]),
+               new Edge(EdgeName.ForestThree,2, nodeMap[nodeIndex(NodeType.ForestCenterNode)], nodeMap[nodeIndex(NodeType.ForestNorthNode)]),
+               new Edge(EdgeName.ForestFour,2, nodeMap[nodeIndex(NodeType.ForestNorthNode)], siteMap[nodeIndex(NodeType.ForestSite)]),
 
-               new Edge(EdgeName.WoodStreetOne,5, siteMap[await nodeIndex(NodeType.CarpenterSite)], nodeMap[await nodeIndex(NodeType.NorthGateNode)]),
-               new Edge(EdgeName.WoodStreetTwo,3, nodeMap[await nodeIndex(NodeType.SouthGateNode)], siteMap[await nodeIndex(NodeType.CarpenterSite)]),
+               new Edge(EdgeName.WoodStreetOne,5, siteMap[nodeIndex(NodeType.CarpenterSite)], nodeMap[nodeIndex(NodeType.NorthGateNode)]),
+               new Edge(EdgeName.WoodStreetTwo,3, nodeMap[nodeIndex(NodeType.SouthGateNode)], siteMap[nodeIndex(NodeType.CarpenterSite)]),
 
-               new Edge(EdgeName.NorthStreetOne,6, nodeMap[await nodeIndex(NodeType.NorthGateNode)], nodeMap[await nodeIndex(NodeType.WestCornerNode)]),
-               new Edge(EdgeName.NorthStreetTwo,3, nodeMap[await nodeIndex(NodeType.WestCornerNode)], siteMap[await nodeIndex(NodeType.MainSite)]),
+               new Edge(EdgeName.NorthStreetOne,6, nodeMap[nodeIndex(NodeType.NorthGateNode)], nodeMap[nodeIndex(NodeType.WestCornerNode)]),
+               new Edge(EdgeName.NorthStreetTwo,3, nodeMap[nodeIndex(NodeType.WestCornerNode)], siteMap[nodeIndex(NodeType.MainSite)]),
 
-               new Edge(EdgeName.LuxStreetOne,4, nodeMap[await nodeIndex(NodeType.NorthGateNode)], nodeMap[await nodeIndex(NodeType.LuxStreetNode)]),
-               new Edge(EdgeName.LuxStreetTwo,5, nodeMap[await nodeIndex(NodeType.LuxStreetNode)], nodeMap[await nodeIndex(NodeType.InterStreetNode)]),
+               new Edge(EdgeName.LuxStreetOne,4, nodeMap[nodeIndex(NodeType.NorthGateNode)], nodeMap[nodeIndex(NodeType.LuxStreetNode)]),
+               new Edge(EdgeName.LuxStreetTwo,5, nodeMap[nodeIndex(NodeType.LuxStreetNode)], nodeMap[nodeIndex(NodeType.InterStreetNode)]),
             };
         }
 
-        async Task<int> nodeIndex(NodeType type)
+        //returns the node or site based on it's nodeType
+        int nodeIndex(NodeType type)
         {
-            int i = await Task.FromResult<int>(nodeMap.ToList().FindIndex(n => n.nodeType == type));
-            if (i > -1)
-                return i;
-            return await Task.FromResult<int>(siteMap.ToList().FindIndex(s => s.nodeType == type));
+            int i = nodeMap.ToList().FindIndex(n => n.nodeType == type);
+            if (i > -1) return i; //-1 represents that nodeMap does not contain that nodeType
+            return siteMap.ToList().FindIndex(s => s.nodeType == type);
         }
         #endregion
 
-        public void UpdateAgent(Agent agent)
+        //returns the sites which the agent(transporter) can take out materials from
+        public Site[] TakeOutSites => siteMap.ToList().GetRange(1, siteMap.Length - 1).ToArray();
+
+        //Called upon Form2 closing, the agent at the index in agentList will be updated
+        public void UpdateAgent(Agent agent, int index)
         {
-            int index = agentList.IndexOf(agent);
             agentList[index] = agent;
             agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.MainJob.jobName);
             agentList[index].listBox.agentLabel.Text = agent.name;
         }
 
+        //Called upon Form2 opening, get the agent's index in the agentList
+        public int GetAgentIndex(Agent agent) => agentList.IndexOf(agent);
+        //assign the selected to the currently selected agent by the user
         public void AgentSelected(Agent agent) => selectedAgent = agent;
+        //
         public bool AgentAlreadySelected(Agent agent)
         {
-            if (selectedAgent != agent)
-            {
-                if (selectedAgent != null)
-                    selectedAgent.listBox.agentBox.BackColor = SystemColors.Control;
-                return false;
-            }
-            return true;
+            if (selectedAgent == agent)
+                return true;
+            //if the selected agent isn't the current selected agent
+            if (selectedAgent != null)  //change the current selected agent's box colour to its default colour
+                selectedAgent.listBox.agentBox.BackColor = SystemColors.Control;
+            return false;
         }
 
+        //Event called from pressing the button to create a new agent
         private void button_AddAgent_Click(object sender, EventArgs e)
         {
             Agent newAgent = new Agent($"Agent {agentList.Count}");
@@ -181,6 +186,7 @@ namespace u3184875_9746_Assignment2
             return agentBox;
         }
 
+        //Creates a group box that will display the site's inventory and number of agents in the site
         GroupBox SitePanel(Site site, int i)
         {
             GroupBox siteBox = new GroupBox();
@@ -208,7 +214,7 @@ namespace u3184875_9746_Assignment2
             workers.Size = new Size(70, 13);
             workers.Text = $"{site.currentAgents.Count}/{site.maxAgents}";
 
-            int xPoint = 6;
+            int xPoint = 6; //adaptively set the positions of the groupBoxs if a site does not use a material
             if (SiteHoldsOre(site.nodeType))
             {
                 siteBox.Controls.Add(CreateMaterialBox(site, MaterialType.Ore, xPoint));
@@ -230,6 +236,7 @@ namespace u3184875_9746_Assignment2
             return siteBox;
         }
 
+        //creating the group boxes to display the materials for the sites
         GroupBox CreateMaterialBox(Site site, MaterialType matType, int xPoint)
         {
             GroupBox materialBox = new GroupBox();
@@ -274,7 +281,7 @@ namespace u3184875_9746_Assignment2
         #endregion
 
         #region Edge Events
-
+        //Display the edge's information and set it's position
         private void OpenEdgeBox(Edge edge, Label label)
         {
             currentEdgeToEdit = edge;
@@ -285,6 +292,8 @@ namespace u3184875_9746_Assignment2
             pictureBox_EdgePointTwo.Image = IconPath.GetIcon(edge.pointTwo.nodeType);
         }
 
+        //Display the edge's inforamtion and set it's position
+        //point is used to ensure that the box is within view
         private void OpenEdgeBox(Edge edge, Label label, Point point)
         {
             currentEdgeToEdit = edge;
@@ -297,7 +306,8 @@ namespace u3184875_9746_Assignment2
 
         private void panel_Map_Click(object sender, EventArgs e) => groupBox_EdgeBox.Hide();
 
-        #region Label Clicks
+        #region Edge Label Clicks Events
+        //Label events which will call OpenEdgeBox and pass in the edge and the label which will be used to determine the position
         private void label_EdgeForestOne_Click(object sender, EventArgs e) => OpenEdgeBox(edgeMap.Single(s => s.name == EdgeName.ForestOne), label_EdgeForestOne);
         private void label_EdgeForestTwo_Click(object sender, EventArgs e) => OpenEdgeBox(edgeMap.Single(s => s.name == EdgeName.ForestTwo), label_EdgeForestTwo);
         private void label_EdgeForestThree_Click(object sender, EventArgs e) => OpenEdgeBox(edgeMap.Single(s => s.name == EdgeName.ForestThree), label_EdgeForestThree);
@@ -320,6 +330,7 @@ namespace u3184875_9746_Assignment2
         private void label_EdgeResidentStreetThree_Click(object sender, EventArgs e) => OpenEdgeBox(edgeMap.Single(s => s.name == EdgeName.ResidentStreetThree), label_EdgeResidentStreetThree, new Point(-40, label_EdgeResidentStreetThree.Size.Height));
         #endregion
 
+        //checks if there is Form3 opened with the site's name
         public bool SiteFormAlreadyOpened(string name)
         {
             foreach (Form form in Application.OpenForms)
@@ -328,6 +339,7 @@ namespace u3184875_9746_Assignment2
             return false;
         }
 
+        //checks if there is a Form2 opened with the agent's HashCode
         public bool AgentFormAlreadyOpened(string name)
         {
             foreach (Form form in Application.OpenForms)
@@ -338,28 +350,21 @@ namespace u3184875_9746_Assignment2
         #endregion
 
         #region Removing Agent Event
+        //Remove an agent from the agentList and it's groupBox and reorganize the list
         private void button_RemoveAgent_Click(object sender, EventArgs e)
         {
-            if (selectedAgent != null)
-            {
-                groupBox_Agents.Controls.Remove(selectedAgent.listBox.agentBox);
-                selectedAgent.listBox.agentBox.Dispose();
-                agentList.Remove(selectedAgent);
-
-                ReorderAgentList();
-            }
-        }
-
-        private void ReorderAgentList()
-        {
+            if (selectedAgent == null)
+                return;
+            groupBox_Agents.Controls.Remove(selectedAgent.listBox.agentBox);
+            selectedAgent.listBox.agentBox.Dispose();
+            agentList.Remove(selectedAgent);
+            //organize the agent's list
             for (int i = 0; i < agentList.Count; i++)
-            {
-                int yPoint = i > 0 ? (i * 75) + 3 : 3;
-                agentList[i].listBox.agentBox.Location = new Point(3, yPoint);
-            }
+                agentList[i].listBox.agentBox.Location = new Point(3, i > 0 ? (i * 75) + 3 : 3);
         }
         #endregion
 
+        //returns the center position of the chosen node
         //https://stackoverflow.com/a/3118035
         Point ReturnNodeLocation(PictureBox node)
         {
@@ -404,8 +409,8 @@ namespace u3184875_9746_Assignment2
             return new Point();
         }
 
-        //gets the job's site
-        public Site GetSiteByJob(JobName job)
+        //gets the job's site by JobName
+        public Site GetSite(JobName job)
         {
             switch (job)
             {
@@ -419,13 +424,16 @@ namespace u3184875_9746_Assignment2
                     return siteMap.Single(s => s.nodeType == NodeType.MiningSite);
                 case JobName.Constructor:
                     return siteMap.Single(s => s.nodeType == NodeType.MainSite);
+                case JobName.Transporter:
+                    return siteMap.Single(s => s.nodeType == NodeType.StorageSite);
                 default:
                     return null;
             }
         }
+        //gets the site by its nodeType
+        public Site GetSite(NodeType job) => siteMap.Single(s => s.nodeType == job);
 
-        public Site GetSiteByNodeType(NodeType job) => siteMap.Single(s => s.nodeType == job);
-
+        //returns the edges that are connected to the node
         public Edge[] GetConnectedEdges(Node node)
         {
             List<Edge> connectedEdges = new List<Edge>();
@@ -435,20 +443,16 @@ namespace u3184875_9746_Assignment2
             return connectedEdges.ToArray();
         }
 
+        //simply checks if the current node is a site
         public bool CurrentNodeIsSite(NodeType type)
         {
             switch (type)
             {
                 case NodeType.MainSite:
-                    return true;
                 case NodeType.BlacksmithSite:
-                    return true;
                 case NodeType.CarpenterSite:
-                    return true;
                 case NodeType.StorageSite:
-                    return true;
                 case NodeType.ForestSite:
-                    return true;
                 case NodeType.MiningSite:
                     return true;
                 default:
@@ -456,6 +460,7 @@ namespace u3184875_9746_Assignment2
             }
         }
 
+        //returns the edge's cost if it holds both pointOne and pointTwo
         public int GetEdgeCost(Node pointOne, Node pointTwo)
         {
             foreach (var edge in edgeMap)
@@ -464,6 +469,7 @@ namespace u3184875_9746_Assignment2
             return -1;
         }
 
+        //creates a pictureBox which will be used to display the agent when traveling
         public PictureBox CreateAgentIcon()
         {
             PictureBox agentIcon = new PictureBox();
@@ -480,22 +486,13 @@ namespace u3184875_9746_Assignment2
             return agentIcon;
         }
 
-        void SetLeft_Location(Point point)
-        {
-            if (button_Left.InvokeRequired)
-                button_Left.Invoke(new Action<Point>(SetLeft_Location), point);
-            else
-                button_Left.Location = point;
-        }
+        //public void SetLabelAngle(string text)
+        //{
+        //    if (label_Angle.InvokeRequired) label_Angle.Invoke(new Action<string>(SetLabelAngle), text);
+        //    else label_Angle.Text = text;
+        //}
 
-        public void SetLabelAngle(string text)
-        {
-            if (label_Angle.InvokeRequired)
-                label_Angle.Invoke(new Action<string>(SetLabelAngle), text);
-            else
-                label_Angle.Text = text;
-        }
-
+        //Starts the programs
         private void button_Start_Click(object sender, EventArgs e)
         {
             for (int i = 0; i < agentList.Count; i++)
