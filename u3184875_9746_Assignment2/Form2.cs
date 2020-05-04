@@ -28,15 +28,15 @@ namespace u3184875_9746_Assignment2
             this.index = index;
 
             this.agent = agent;
-            mainJob = agent.MainJob;
-            if (agent.SubJobs != null)
-                subJobs = agent.SubJobs.ToList();
+            mainJob = agent.mainJob;
+            if (agent.subJobs != null)
+                subJobs = agent.subJobs.ToList();
             else
                 subJobs = new List<Job>();
 
             textBox_AgentName.Text = agent.name;
 
-            HighlightMainJob(agent.MainJob);
+            HighlightMainJob(agent.mainJob);
             foreach (var job in subJobs)
                 HighlightSubJob(job);
 
@@ -296,8 +296,8 @@ namespace u3184875_9746_Assignment2
 
         private void Form2_FormClosing(object sender, FormClosingEventArgs e)
         {
-            agent.MainJob = mainJob;
-            agent.SubJobs = subJobs.ToArray();
+            agent.mainJob = mainJob;
+            agent.subJobs = subJobs.Count == 0 ? null : subJobs.ToArray();
             Form1.inst.UpdateAgent(agent, index);
         }
 

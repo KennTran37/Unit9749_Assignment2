@@ -56,7 +56,7 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay);
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
                 //if agent should take out materials from inventory is False and site has materials || take out materials from inventory is True and agent's inventory has materials
                 if (!takeMatFromAgentInvent && jobSite.inventory.ore.TryTakeOutMaterial() || takeMatFromAgentInvent && agentInventory.ore.TryTakeOutMaterial())
                     if (!jobSite.inventory.ingot.TryPutInMaterial())
@@ -80,7 +80,7 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay);
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
                 //if agent should take out materials from inventory is False and site has materials || take out materials from inventory is True and agent's inventory has materials
                 if (!takeMatFromAgentInvent && jobSite.inventory.wood.TryTakeOutMaterial() || takeMatFromAgentInvent && agentInventory.wood.TryTakeOutMaterial())
                     if (!jobSite.inventory.plank.TryPutInMaterial())
@@ -104,7 +104,7 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < collectNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay);
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
                 //if there isn't any space within the site's inventory
                 if (!jobSite.inventory.wood.TryPutInMaterial())
                     agentInventory.wood.TryPutInMaterial(); //put it into the agent's inventory
@@ -121,7 +121,7 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < collectNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay);
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
                 //if there isn't any space within the site's inventory
                 if (!jobSite.inventory.ore.TryPutInMaterial())
                     agentInventory.ore.TryPutInMaterial(); //put it into the agent's inventory
@@ -161,7 +161,7 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay);
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Wood:
@@ -188,7 +188,7 @@ namespace u3184875_9746_Assignment2
         {
             for (int i = 0; i < putInNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay);
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Wood:

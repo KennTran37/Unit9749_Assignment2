@@ -29,7 +29,7 @@ namespace u3184875_9746_Assignment2
             currentAgents = new List<Agent>();
             this.maxAgents = maxAgents;
 
-            inventory = new Inventory(new MaterialBox());
+            inventory = new Inventory();
         }
 
         public void DisplaySiteInformation(object sender, EventArgs e)
@@ -45,6 +45,7 @@ namespace u3184875_9746_Assignment2
         public bool HasSpace() => currentAgents.Count < maxAgents;
     }
 
+    //holds the form elements which will display the site's infomation
     public struct SiteListBox
     {
         public GroupBox siteBox;
@@ -68,20 +69,28 @@ namespace u3184875_9746_Assignment2
         public MaterialBox ore;
         public MaterialBox ingot;
 
-        public Inventory(MaterialBox newBox)
-        {
-            wood = newBox;
-            plank = newBox;
-            ore = newBox;
-            ingot = newBox;
-        }
-
         public Inventory()
         {
-            wood = new MaterialBox(MaterialType.Wood, 0, 10);
-            plank = new MaterialBox(MaterialType.Plank, 0, 10);
-            ore = new MaterialBox(MaterialType.Ore, 0, 10);
-            ingot = new MaterialBox(MaterialType.Ingot, 0, 10);
+            wood = new MaterialBox();
+            plank = new MaterialBox();
+            ore = new MaterialBox();
+            ingot = new MaterialBox();
+        }
+
+        public Inventory(int current, int max)
+        {
+            wood = new MaterialBox(MaterialType.Wood, current, max);
+            plank = new MaterialBox(MaterialType.Plank, current, max);
+            ore = new MaterialBox(MaterialType.Ore, current, max);
+            ingot = new MaterialBox(MaterialType.Ingot, current, max);
+        }
+
+        public Inventory(Inventory invent)
+        {
+            wood = invent.wood;
+            plank = invent.plank;
+            ingot = invent.ingot;
+            ore = invent.ore;
         }
     }
 
@@ -92,7 +101,8 @@ namespace u3184875_9746_Assignment2
         public PictureBox icon;
         public Label label;
 
-        int current, max;
+        private int current;
+        private int max;
 
         //used to assign site inventory
         public MaterialBox(GroupBox materialBox, PictureBox icon, Label label, MaterialType type) : this()
@@ -139,7 +149,7 @@ namespace u3184875_9746_Assignment2
             if (label.InvokeRequired)
                 label.Invoke(new Action(SetCountText));
             else
-                label.Text = $"{current}/{Max}";
+                label.Text = $"{current}/{max}";
         }
 
         public bool HasSpace() => current < max;

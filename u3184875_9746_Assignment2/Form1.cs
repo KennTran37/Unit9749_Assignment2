@@ -42,6 +42,13 @@ namespace u3184875_9746_Assignment2
         float constructionTime;
         List<Agent> agentList = new List<Agent>();
 
+        public bool IsRunning { get; set; }
+        public CancellationTokenSource cts;
+
+        //holds the original inventory data of the sites before the user starts the construction
+        Inventory[] originalSiteInventories = new Inventory[6];
+        Inventory[] originalAgentInventoies;
+
         Edge currentEdgeToEdit;
         Agent selectedAgent = null; //used to highlight the current selected agent for the User to remove
 
@@ -107,7 +114,7 @@ namespace u3184875_9746_Assignment2
         public void UpdateAgent(Agent agent, int index)
         {
             agentList[index] = agent;
-            agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.MainJob.jobName);
+            agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
             agentList[index].listBox.agentLabel.Text = agent.name;
         }
 
@@ -124,14 +131,6 @@ namespace u3184875_9746_Assignment2
             if (selectedAgent != null)  //change the current selected agent's box colour to its default colour
                 selectedAgent.listBox.agentBox.BackColor = SystemColors.Control;
             return false;
-        }
-
-        //Event called from pressing the button to create a new agent
-        private void button_AddAgent_Click(object sender, EventArgs e)
-        {
-            Agent newAgent = new Agent($"Agent {agentList.Count}");
-            agentList.Add(newAgent);
-            panel_AgentList.Controls.Add(AgentPanel(newAgent));
         }
 
         private void numeric_Edge_ValueChanged(object sender, EventArgs e) => currentEdgeToEdit.cost = (int)numeric_Edge.Value;
@@ -152,7 +151,7 @@ namespace u3184875_9746_Assignment2
             mainJob.Location = new Point(6, 13);
             mainJob.Size = new Size(50, 50);
             mainJob.SizeMode = PictureBoxSizeMode.Zoom;
-            mainJob.Image = IconPath.GetIcon(agent.MainJob.jobName);
+            mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
 
             Label agentLabel = new Label();
             agentBox.Controls.Add(agentLabel);
@@ -233,6 +232,7 @@ namespace u3184875_9746_Assignment2
             if (SiteHoldsPlank(site.nodeType))
                 siteBox.Controls.Add(CreateMaterialBox(site, MaterialType.Plank, xPoint));
 
+            siteMap[i].listBox = new SiteListBox(siteBox, siteIcon, siteName, workers);
             return siteBox;
         }
 
@@ -349,21 +349,7 @@ namespace u3184875_9746_Assignment2
         }
         #endregion
 
-        #region Removing Agent Event
-        //Remove an agent from the agentList and it's groupBox and reorganize the list
-        private void button_RemoveAgent_Click(object sender, EventArgs e)
-        {
-            if (selectedAgent == null)
-                return;
-            groupBox_Agents.Controls.Remove(selectedAgent.listBox.agentBox);
-            selectedAgent.listBox.agentBox.Dispose();
-            agentList.Remove(selectedAgent);
-            //organize the agent's list
-            for (int i = 0; i < agentList.Count; i++)
-                agentList[i].listBox.agentBox.Location = new Point(3, i > 0 ? (i * 75) + 3 : 3);
-        }
-        #endregion
-
+        #region Getting Site Info
         //returns the center position of the chosen node
         //https://stackoverflow.com/a/3118035
         Point ReturnNodeLocation(PictureBox node)
@@ -459,6 +445,7 @@ namespace u3184875_9746_Assignment2
                     return false;
             }
         }
+        #endregion
 
         //returns the edge's cost if it holds both pointOne and pointTwo
         public int GetEdgeCost(Node pointOne, Node pointTwo)
@@ -486,9 +473,22 @@ namespace u3184875_9746_Assignment2
             return agentIcon;
         }
 
-        //Starts the programs
+        #region Button Events 
+        //Starts the agents
         private void button_Start_Click(object sender, EventArgs e)
         {
+            if (IsRunning)
+                return;
+
+            for (int i = 0; i < siteMap.Length; i++)
+                originalSiteInventories[i] = new Inventory(siteMap[i].inventory);
+
+            originalAgentInventoies = new Inventory[agentList.Count];
+            for (int i = 0; i < agentList.Count; i++)
+                originalAgentInventoies[i] = new Inventory(agentList[i].Inventory);
+
+            cts = new CancellationTokenSource();
+            IsRunning = true;
             for (int i = 0; i < agentList.Count; i++)
             {
                 ThreadStart startThread = new ThreadStart(agentList[i].InitAgent);
@@ -499,7 +499,57 @@ namespace u3184875_9746_Assignment2
 
         private void button_Stop_Click(object sender, EventArgs e)
         {
+            if (!IsRunning)
+                return;
+            IsRunning = false;
+            cts.Cancel();
 
+            ResetInventoryData();
         }
+
+        //Event called from pressing the button to create a new agent
+        private void button_AddAgent_Click(object sender, EventArgs e)
+        {
+            if (IsRunning)
+                return;
+
+            Agent newAgent = new Agent($"Agent {agentList.Count}");
+            agentList.Add(newAgent);
+            panel_AgentList.Controls.Add(AgentPanel(newAgent));
+        }
+
+        //Remove an agent from the agentList and it's groupBox and reorganize the list
+        private void button_RemoveAgent_Click(object sender, EventArgs e)
+        {
+            if (selectedAgent == null || IsRunning)
+                return;
+            groupBox_Agents.Controls.Remove(selectedAgent.listBox.agentBox);
+            selectedAgent.listBox.agentBox.Dispose();
+            agentList.Remove(selectedAgent);
+            //organize the agent's list
+            for (int i = 0; i < agentList.Count; i++)
+                agentList[i].listBox.agentBox.Location = new Point(3, i > 0 ? (i * 75) + 3 : 3);
+        }
+
+        //Resets the sites and agent's inventory to before the construction
+        void ResetInventoryData()
+        {
+            for (int i = 0; i < siteMap.Length; i++)
+            {
+                siteMap[i].inventory.ore.Current = originalSiteInventories[i].ore.Current;
+                siteMap[i].inventory.wood.Current = originalSiteInventories[i].wood.Current;
+                siteMap[i].inventory.plank.Current = originalSiteInventories[i].plank.Current;
+                siteMap[i].inventory.ingot.Current = originalSiteInventories[i].ingot.Current;
+            }
+
+            for (int i = 0; i < agentList.Count; i++)
+            {
+                agentList[i].Inventory.ore.Current = originalAgentInventoies[i].ore.Current;
+                agentList[i].Inventory.wood.Current = originalAgentInventoies[i].wood.Current;
+                agentList[i].Inventory.plank.Current = originalAgentInventoies[i].plank.Current;
+                agentList[i].Inventory.ingot.Current = originalAgentInventoies[i].ingot.Current;
+            }
+        }
+        #endregion
     }
 }
