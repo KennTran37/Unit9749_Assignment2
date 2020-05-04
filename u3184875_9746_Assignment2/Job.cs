@@ -136,10 +136,7 @@ namespace u3184875_9746_Assignment2
         public Delivery(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
         public override Task ProgressJob() => null;
 
-        public override bool SpaceForAgentMaterial()
-        {
-            return jobSite.HasSpace() && jobSite.inventory.plank.HasSpace();
-        }
+        public override bool SpaceForAgentMaterial() => jobSite.HasSpace();
 
         public override bool HasEnoughMaterial()
         {

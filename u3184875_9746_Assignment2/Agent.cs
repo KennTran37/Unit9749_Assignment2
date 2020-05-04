@@ -20,6 +20,8 @@ namespace u3184875_9746_Assignment2
         public Job mainJob { get; set; }
         public Job[] subJobs { get; set; }
 
+        protected bool deliveringMaterial = false;
+
         //this list holds jobs that the agent could not do and prevent the agent from going back to the same job after going to another job
         List<JobName> blackListJobs = new List<JobName>();
 
@@ -75,9 +77,24 @@ namespace u3184875_9746_Assignment2
         //Finding a job the agent can do based on their skill level if agent can't do its main job
         protected virtual void FindJob()
         {
-            //if agent can't do main job search through the sub jobs
-            if (blackListJobs.Contains(mainJob.jobName))
+            if (deliveringMaterial)
             {
+                switch (currentJob.jobClass.MaterialToDeliver)
+                {
+                    case MaterialType.Plank:
+                    case MaterialType.Ingot:
+                        SetDeliveryTargetSite(NodeType.MainSite);
+                        break;
+                    case MaterialType.Wood:
+                        SetDeliveryTargetSite(NodeType.CarpenterSite);
+                        break;
+                    case MaterialType.Ore:
+                        SetDeliveryTargetSite(NodeType.BlacksmithSite);
+                        break;
+                }
+            }
+            else if (blackListJobs.Contains(mainJob.jobName))
+            {   //if agent can't do main job search through the sub jobs
                 Job[] sortedSub = subJobs.OrderByDescending(o => o.skillLevel).ToArray();
                 foreach (var job in sortedSub)
                     if (!blackListJobs.Contains(job.jobName))
@@ -113,9 +130,10 @@ namespace u3184875_9746_Assignment2
         {
             try
             {
-                //checking if site has space for agent and materials and checking if the site/agent has enough materials to craft
-                if (currentJob.jobClass.SpaceForAgentMaterial() && currentJob.jobClass.HasEnoughMaterial())
-                {
+                if (currentJob.jobName == JobName.Transporter)
+                    DeliveryJob();
+                else if (currentJob.jobClass.SpaceForAgentMaterial() && currentJob.jobClass.HasEnoughMaterial())
+                {   //checking if site has space for agent and materials and checking if the site/agent has enough materials to craft
                     Task.Run(currentJob.jobClass.ProgressJob).Wait();
                     blackListJobs.Clear();
                 }
@@ -134,6 +152,73 @@ namespace u3184875_9746_Assignment2
                 FindJob();
             }
             catch (Exception) { }
+        }
+
+        //Taking out materials from the storage's inventory or storage site
+        //and delivering the material to the targeted sites
+        void DeliveryJob()
+        {
+            if (AgentHasMaterials())
+                return;
+
+            //if storage site has space for agent
+            if (currentJob.jobClass.SpaceForAgentMaterial())
+            {
+                if (!deliveringMaterial && StorageHasMaterial(out MaterialBox box))
+                {
+                    currentJob.jobClass.MaterialToDeliver = box.materialType;
+                    Task.Run(currentJob.jobClass.TakeOutMaterial).Wait();
+                    deliveringMaterial = true;
+                }
+                else
+                {
+                    Task.Run(currentJob.jobClass.DeliverMaterial).Wait();
+                    currentJob.jobClass.jobSite = Form1.inst.GetSite(NodeType.StorageSite);
+                    deliveringMaterial = false;
+                    blackListJobs.Clear();
+                }
+            }
+        }
+
+        //searches for the material with the highest amount inside agent inventory
+        //and sets it has the material to deliver
+        bool AgentHasMaterials()
+        {
+            MaterialBox material = new MaterialBox();
+            MaterialBox[] inventoryArray = { inventory.ore, inventory.ingot, inventory.wood, inventory.plank };
+            foreach (var mat in inventoryArray)
+                if (mat.HasAmount(currentJob.jobClass.TakeOutAmount))
+                    if (material.Current < mat.Current)
+                        material = mat;
+            if (material.Equals(new MaterialBox()))
+                return false;
+
+            currentJob.jobClass.MaterialToDeliver = material.materialType;
+            return false;
+        }
+
+        //sets the target of which the agent will travel towards and changing the jobClass's site data to the target site's
+        protected void SetDeliveryTargetSite(NodeType type)
+        {
+            currentJob.jobClass.jobSite = Form1.inst.GetSite(type);
+            targetSite = new Destination<Site>(currentJob.jobClass.jobSite, Form1.inst.GetNodeLocation(type));
+        }
+
+        //searches for the material with the highest amount inside storage site
+        //and sets it has the material to deliver
+        protected bool StorageHasMaterial(out MaterialBox material)
+        {
+            Site storageSite = currentJob.jobClass.jobSite;
+            material = new MaterialBox();
+            MaterialBox[] inventoryArray = { storageSite.inventory.ingot, storageSite.inventory.ore, storageSite.inventory.wood, storageSite.inventory.plank };
+            foreach (var mat in inventoryArray)
+                if (mat.HasAmount(mainJob.jobClass.TakeOutAmount))
+                    if (material.Current < mat.Current)
+                        material = mat;
+            //if a material box was not selected
+            if (material.Equals(new MaterialBox()))
+                return false;
+            return true;
         }
 
         #region Path Finding

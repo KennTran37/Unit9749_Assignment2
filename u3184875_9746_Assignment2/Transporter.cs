@@ -16,7 +16,6 @@ namespace u3184875_9746_Assignment2
                 materialToDeliver = value;
             }
         }
-        bool deliveringMaterial = false;
 
         //similar to the blackListJobs, this list is used so that the agent does not go back to the same site
         List<NodeType> blacklistSites = new List<NodeType>();
@@ -35,7 +34,7 @@ namespace u3184875_9746_Assignment2
             agentIcon = Form1.inst.CreateAgentIcon();
 
             blacklistSites = new List<NodeType>();
-            SetTargetSite(NodeType.StorageSite);
+            SetDeliveryTargetSite(NodeType.StorageSite);
             currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
             FindJob();
         }
@@ -48,17 +47,17 @@ namespace u3184875_9746_Assignment2
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Wood:
-                        SetTargetSite(NodeType.CarpenterSite);
+                        SetDeliveryTargetSite(NodeType.CarpenterSite);
                         break;
                     case MaterialType.Ore:
-                        SetTargetSite(NodeType.BlacksmithSite);
+                        SetDeliveryTargetSite(NodeType.BlacksmithSite);
                         break;
                     case MaterialType.Plank:
                     case MaterialType.Ingot:
                         if (currentNode.node.nodeType == NodeType.StorageSite)
-                            SetTargetSite(NodeType.MainSite);
+                            SetDeliveryTargetSite(NodeType.MainSite);
                         else
-                            SetTargetSite(NodeType.StorageSite);
+                            SetDeliveryTargetSite(NodeType.StorageSite);
                         break;
                 }
                 PathFinding();
@@ -69,18 +68,11 @@ namespace u3184875_9746_Assignment2
             if (blacklistSites.Count == Form1.inst.TakeOutSites.Length)
             {   //clear the list and go back to storage site
                 blacklistSites.Clear();
-                SetTargetSite(NodeType.StorageSite);
+                SetDeliveryTargetSite(NodeType.StorageSite);
             }
             else  //go to the first available site which has not been blacklisted
-                SetTargetSite(Form1.inst.TakeOutSites.First(f => !blacklistSites.Contains(f.nodeType)).nodeType);
+                SetDeliveryTargetSite(Form1.inst.TakeOutSites.First(f => !blacklistSites.Contains(f.nodeType)).nodeType);
             PathFinding();
-        }
-
-        //sets the target of which the agent will travel towards and changing the jobClass's site data to the target site's
-        void SetTargetSite(NodeType type)
-        {
-            mainJob.jobClass.jobSite = Form1.inst.GetSite(type);
-            targetSite = new Destination<Site>(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(type));
         }
 
         //Checks if the agent is at the site to deliver or take out materials
@@ -91,7 +83,7 @@ namespace u3184875_9746_Assignment2
                 if (!deliveringMaterial)
                 {
                     if (mainJob.SiteNodeType == NodeType.MainSite) //if agent is at the main site then go back to the storage site
-                        SetTargetSite(NodeType.StorageSite);
+                        SetDeliveryTargetSite(NodeType.StorageSite);
                     else if (CanSelectMaterial())
                     {
                         Task.Run(mainJob.jobClass.TakeOutMaterial).Wait(Form1.inst.cts.Token);
@@ -131,24 +123,8 @@ namespace u3184875_9746_Assignment2
                         break;
                 }
             }
-            else if (mainJob.SiteNodeType == NodeType.StorageSite)
-            {   //find which material has the highest amount to take out
-                Site storageSite = mainJob.jobClass.jobSite;
-                MaterialBox material = new MaterialBox();
-                MaterialBox[] inventoryArray = { storageSite.inventory.ingot, storageSite.inventory.ore, storageSite.inventory.wood, storageSite.inventory.plank };
-                foreach (var mat in inventoryArray)
-                    if (mat.HasAmount(mainJob.jobClass.TakeOutAmount))
-                        if (material.Current < mat.Current)
-                            material = mat;
-                //if a material box was not selected
-                if (material.Equals(new MaterialBox()))
-                {
-                    blacklistSites.Add(currentNode.node.nodeType);
-                    return false;
-                }
-
-                MaterialToDeliver = material.materialType;
-            }
+            else if (StorageHasMaterial(out MaterialBox box))
+                MaterialToDeliver = box.materialType;
             else //if site does not have enough materials to take out and site is not storage site
             {
                 blacklistSites.Add(currentNode.node.nodeType);
