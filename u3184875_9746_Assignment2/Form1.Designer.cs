@@ -84,9 +84,10 @@ namespace u3184875_9746_Assignment2
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label5 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.groupBox_Agents.SuspendLayout();
             this.groupBox_Sites.SuspendLayout();
             this.groupBox_EdgeBox.SuspendLayout();
@@ -765,15 +766,6 @@ namespace u3184875_9746_Assignment2
             this.groupBox1.TabIndex = 15;
             this.groupBox1.TabStop = false;
             // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(94, 634);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(108, 13);
-            this.label5.TabIndex = 17;
-            this.label5.Text = "Start the construction";
-            // 
             // label7
             // 
             this.label7.AutoSize = true;
@@ -782,6 +774,15 @@ namespace u3184875_9746_Assignment2
             this.label7.Size = new System.Drawing.Size(222, 13);
             this.label7.TabIndex = 15;
             this.label7.Text = "A simulation of agents constructing something";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(94, 634);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(108, 13);
+            this.label5.TabIndex = 17;
+            this.label5.Text = "Start the construction";
             // 
             // label8
             // 
@@ -793,11 +794,21 @@ namespace u3184875_9746_Assignment2
             this.label8.Text = "Stops the construction and resets all the agent\'s position and the constructions " +
     "progress";
             // 
+            // groupBox2
+            // 
+            this.groupBox2.Location = new System.Drawing.Point(959, 513);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(302, 190);
+            this.groupBox2.TabIndex = 20;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Information";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1264, 715);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.groupBox1);
@@ -899,6 +910,7 @@ namespace u3184875_9746_Assignment2
         private Label label5;
         private Label label7;
         private Label label8;
+        private GroupBox groupBox2;
     }
 }
 

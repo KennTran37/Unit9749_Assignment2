@@ -43,6 +43,7 @@ namespace u3184875_9746_Assignment2
             DisplayMaterialBoxes();
         }
 
+        //highlights a box in red and sets the trackBar value to the job's skillLevel
         void HighlightMainJob(Job job)
         {
             switch (job.jobName)
@@ -74,6 +75,7 @@ namespace u3184875_9746_Assignment2
             }
         }
 
+        //highlights a box in blue and sets the trackBar value to the job's skillLevel
         void HighlightSubJob(Job job)
         {
             switch (job.jobName)
@@ -164,28 +166,43 @@ namespace u3184875_9746_Assignment2
         #endregion
 
         #region MainJob Selection
+        //Updates the agent's mainJob and checks which job the User choose to change the class's object
         void UpdateMainJob(JobName job, GroupBox box, TrackBar bar)
         {
             if (mainJob.jobName == job)
                 return;
 
-            if (job == JobName.Transporter)
-            {
-                agent = new Transporter(agent);
-                subJobs.Clear();
-                ClearAllJobs();
-            }
-            else if (SubJobsContains(job))
-                subJobs.Remove(subJobs.Single(s => s.jobName == job));
+            ChangeClassType(job);
 
-            if (mainJob.jobName == JobName.Transporter && job != JobName.Transporter)
-                if (agent.GetType().Equals(typeof(Transporter)))
-                    agent = new Agent(agent);
+            //remove the main job from sub jobs if it is in the list
+            if (SubJobsContains(job))
+                subJobs.Remove(subJobs.Single(s => s.jobName == job));
 
             ClearOldMainJob(mainJob.jobName);
             mainJob = new Job(job, SetJobType(job), bar.Value);
             box.BackColor = mainJobColor;
             DisplayMaterialBoxes();
+        }
+
+        //change the class's type to Agent, Transporter or Constructor
+        void ChangeClassType(JobName job)
+        {
+            if (job == JobName.Transporter)
+            {   //if job is Transporter, remove all subjobs
+                agent = new Transporter(agent);
+                subJobs.Clear();
+                ClearAllJobs();
+            }
+            else if (job == JobName.Constructor)
+                agent = new Constructor(agent);
+
+            //changing classes back to Agent
+            if (mainJob.jobName == JobName.Transporter && job != JobName.Transporter)
+                if (agent.GetType().Equals(typeof(Transporter)))
+                    agent = new Agent(agent);
+            if (mainJob.jobName == JobName.Constructor && job != JobName.Constructor)
+                if (agent.GetType().Equals(typeof(Constructor)))
+                    agent = new Agent(agent);
         }
 
         private void MainJob_BlackSmith_Select(object sender, EventArgs e) => UpdateMainJob(JobName.Blacksmith, groupBox_JobBlacksmith, trackBar_Blacksmith);

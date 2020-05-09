@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace u3184875_9746_Assignment2
 {
+    //This class holds the algorithm that will control the agent when it's main job is a Transporter
     public class Transporter : Agent
     {
         MaterialType materialToDeliver;
@@ -20,21 +21,15 @@ namespace u3184875_9746_Assignment2
         //similar to the blackListJobs, this list is used so that the agent does not go back to the same site
         List<NodeType> blacklistSites = new List<NodeType>();
 
-        public Transporter(Agent agent) : base(agent)
-        {
-            //reassign the event where the form will display the agent class's data to Transporter class's data
-            listBox.agentBox.DoubleClick -= agent.DisplayAgentInformation;
-            listBox.agentBox.DoubleClick += DisplayAgentInformation;
-
+        public Transporter(Agent agent) : base(agent) =>
             mainJob = new Job(JobName.Transporter, new Delivery(inventory, Form1.inst.GetSite(JobName.Transporter)), agent.mainJob.skillLevel);
-        }
 
         public override void InitAgent()
         {
             agentIcon = Form1.inst.CreateAgentIcon();
 
             blacklistSites = new List<NodeType>();
-            SetDeliveryTargetSite(NodeType.StorageSite);
+            SetTargetSite(NodeType.StorageSite);
             currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
             FindJob();
         }
@@ -47,17 +42,17 @@ namespace u3184875_9746_Assignment2
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Wood:
-                        SetDeliveryTargetSite(NodeType.CarpenterSite);
+                        SetTargetSite(NodeType.CarpenterSite);
                         break;
                     case MaterialType.Ore:
-                        SetDeliveryTargetSite(NodeType.BlacksmithSite);
+                        SetTargetSite(NodeType.BlacksmithSite);
                         break;
                     case MaterialType.Plank:
                     case MaterialType.Ingot:
                         if (currentNode.node.nodeType == NodeType.StorageSite)
-                            SetDeliveryTargetSite(NodeType.MainSite);
+                            SetTargetSite(NodeType.MainSite);
                         else
-                            SetDeliveryTargetSite(NodeType.StorageSite);
+                            SetTargetSite(NodeType.StorageSite);
                         break;
                 }
                 PathFinding();
@@ -68,11 +63,17 @@ namespace u3184875_9746_Assignment2
             if (blacklistSites.Count == Form1.inst.TakeOutSites.Length)
             {   //clear the list and go back to storage site
                 blacklistSites.Clear();
-                SetDeliveryTargetSite(NodeType.StorageSite);
+                SetTargetSite(NodeType.StorageSite);
             }
             else  //go to the first available site which has not been blacklisted
-                SetDeliveryTargetSite(Form1.inst.TakeOutSites.First(f => !blacklistSites.Contains(f.nodeType)).nodeType);
+                SetTargetSite(Form1.inst.TakeOutSites.First(f => !blacklistSites.Contains(f.nodeType)).nodeType);
             PathFinding();
+        }
+
+        protected override void SetTargetSite(NodeType type)
+        {
+            mainJob.jobClass.jobSite = Form1.inst.GetSite(type);
+            targetSite = new Destination<Site>(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(type));
         }
 
         //Checks if the agent is at the site to deliver or take out materials
@@ -83,7 +84,7 @@ namespace u3184875_9746_Assignment2
                 if (!deliveringMaterial)
                 {
                     if (mainJob.SiteNodeType == NodeType.MainSite) //if agent is at the main site then go back to the storage site
-                        SetDeliveryTargetSite(NodeType.StorageSite);
+                        SetTargetSite(NodeType.StorageSite);
                     else if (CanSelectMaterial())
                     {
                         Task.Run(mainJob.jobClass.TakeOutMaterial).Wait(Form1.inst.cts.Token);
@@ -133,6 +134,7 @@ namespace u3184875_9746_Assignment2
             return true;
         }
 
+        //Same code but Form2's constructor will take in the Transporter class instead of Agent class
         public override void DisplayAgentInformation(object sender, EventArgs e)
         {
             if (!Form1.inst.AgentFormAlreadyOpened(GetHashCode().ToString()))

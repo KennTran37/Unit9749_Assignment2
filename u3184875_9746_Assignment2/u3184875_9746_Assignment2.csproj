@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
+    <Compile Include="Constructor.cs" />
     <Compile Include="Edge.cs" />
     <Compile Include="EnumsAndStructs.cs" />
     <Compile Include="Form1.cs">

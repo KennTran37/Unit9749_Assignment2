@@ -16,6 +16,11 @@ namespace u3184875_9746_Assignment2
         public JobBase jobClass { get; set; }
         public int skillLevel { get; set; }
         public NodeType SiteNodeType => jobClass.jobSite.nodeType;
+
+        public MaterialBox SiteIngot => jobClass.jobSite.inventory.ingot;
+        public MaterialBox SitePlank => jobClass.jobSite.inventory.plank;
+        public MaterialBox SiteWood => jobClass.jobSite.inventory.wood;
+        public MaterialBox SiteOre => jobClass.jobSite.inventory.ore;
     }
 
 
@@ -212,24 +217,55 @@ namespace u3184875_9746_Assignment2
     class Builder : JobBase
     {
         public Builder(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override Task ProgressJob()
+        public override async Task ProgressJob()
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < takeOutNumMaterials; i++)
+            {
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                if (jobSite.inventory.ingot.TryTakeOutMaterial() && jobSite.inventory.plank.TryTakeOutMaterial())
+                    continue;   //add one to construction progression
+            }
         }
 
-        public override bool SpaceForAgentMaterial()
+        public override bool SpaceForAgentMaterial() => jobSite.HasSpace();
+        public override bool HasEnoughMaterial() => jobSite.inventory.ingot.HasAmount(takeOutNumMaterials) && jobSite.inventory.plank.HasAmount(takeOutNumMaterials);
+
+        public override async Task TakeOutMaterial()
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < TakeOutAmount; i++)
+            {
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                switch (MaterialToDeliver)
+                {
+                    case MaterialType.Plank:
+                        if (jobSite.inventory.plank.TryTakeOutMaterial())
+                            agentInventory.plank.TryPutInMaterial();
+                        break;
+                    case MaterialType.Ingot:
+                        if (jobSite.inventory.ingot.TryTakeOutMaterial())
+                            agentInventory.ingot.TryPutInMaterial();
+                        break;
+                }
+            }
         }
 
-        public override Task TakeOutMaterial()
+        public override async Task DeliverMaterial()
         {
-            throw new NotImplementedException();
-        }
-
-        public override Task DeliverMaterial()
-        {
-            throw new NotImplementedException();
+            for (int i = 0; i < putInNumMaterials; i++)
+            {
+                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                switch (MaterialToDeliver)
+                {
+                    case MaterialType.Plank:
+                        if (agentInventory.plank.TryTakeOutMaterial())
+                            jobSite.inventory.plank.TryPutInMaterial();
+                        break;
+                    case MaterialType.Ingot:
+                        if (agentInventory.ingot.TryTakeOutMaterial())
+                            jobSite.inventory.ingot.TryPutInMaterial();
+                        break;
+                }
+            }
         }
     }
 }

@@ -119,7 +119,7 @@ namespace u3184875_9746_Assignment2
         }
 
         //Called upon Form2 opening, get the agent's index in the agentList
-        public int GetAgentIndex(Agent agent) => agentList.IndexOf(agent);
+        public int GetAgentIndex<T>(T agent) where T : Agent => agentList.IndexOf(agent);
         //assign the selected to the currently selected agent by the user
         public void AgentSelected(Agent agent) => selectedAgent = agent;
         //
@@ -361,38 +361,42 @@ namespace u3184875_9746_Assignment2
         //gets the position on the form of where the node's PictureBox is
         public Point GetNodeLocation(NodeType node)
         {
-            if (node == NodeType.MainSite)
-                return ReturnNodeLocation(pictureBox_SiteMain);
-            if (node == NodeType.BlacksmithSite)
-                return ReturnNodeLocation(pictureBox_SiteBlacksmith);
-            if (node == NodeType.CarpenterSite)
-                return ReturnNodeLocation(pictureBox_SiteCarpenter);
-            if (node == NodeType.StorageSite)
-                return ReturnNodeLocation(pictureBox_SiteStorage);
-            if (node == NodeType.ForestSite)
-                return ReturnNodeLocation(pictureBox_SiteForest);
-            if (node == NodeType.MiningSite)
-                return ReturnNodeLocation(pictureBox_SiteMine);
+            switch (node)
+            {
+                case NodeType.MainSite:
+                    return ReturnNodeLocation(pictureBox_SiteMain);
+                case NodeType.BlacksmithSite:
+                    return ReturnNodeLocation(pictureBox_SiteBlacksmith);
+                case NodeType.CarpenterSite:
+                    return ReturnNodeLocation(pictureBox_SiteCarpenter);
+                case NodeType.StorageSite:
+                    return ReturnNodeLocation(pictureBox_SiteStorage);
+                case NodeType.ForestSite:
+                    return ReturnNodeLocation(pictureBox_SiteForest);
+                case NodeType.MiningSite:
+                    return ReturnNodeLocation(pictureBox_SiteMine);
 
-            if (node == NodeType.ForestCenterNode)
-                return ReturnNodeLocation(pictureBox_NodeForestCentral);
-            if (node == NodeType.ForestNorthNode)
-                return ReturnNodeLocation(pictureBox_NodeForestNorth);
-            if (node == NodeType.ForestSouthNode)
-                return ReturnNodeLocation(pictureBox_NodeForestSouth);
-            if (node == NodeType.InterStreetNode)
-                return ReturnNodeLocation(pictureBox_NodeInterStreet);
-            if (node == NodeType.LuxStreetNode)
-                return ReturnNodeLocation(pictureBox_NodeLuxStreet);
-            if (node == NodeType.NorthGateNode)
-                return ReturnNodeLocation(pictureBox_NodeNorthGate);
-            if (node == NodeType.ResidentStreetNode)
-                return ReturnNodeLocation(pictureBox_NodeResidentStreet);
-            if (node == NodeType.SouthGateNode)
-                return ReturnNodeLocation(pictureBox_NodeSouthGate);
-            if (node == NodeType.WestCornerNode)
-                return ReturnNodeLocation(pictureBox_NodeWestCorner);
-            return new Point();
+                case NodeType.ForestCenterNode:
+                    return ReturnNodeLocation(pictureBox_NodeForestCentral);
+                case NodeType.ForestNorthNode:
+                    return ReturnNodeLocation(pictureBox_NodeForestNorth);
+                case NodeType.ForestSouthNode:
+                    return ReturnNodeLocation(pictureBox_NodeForestSouth);
+                case NodeType.InterStreetNode:
+                    return ReturnNodeLocation(pictureBox_NodeInterStreet);
+                case NodeType.LuxStreetNode:
+                    return ReturnNodeLocation(pictureBox_NodeLuxStreet);
+                case NodeType.NorthGateNode:
+                    return ReturnNodeLocation(pictureBox_NodeNorthGate);
+                case NodeType.ResidentStreetNode:
+                    return ReturnNodeLocation(pictureBox_NodeResidentStreet);
+                case NodeType.SouthGateNode:
+                    return ReturnNodeLocation(pictureBox_NodeSouthGate);
+                case NodeType.WestCornerNode:
+                    return ReturnNodeLocation(pictureBox_NodeWestCorner);
+                default:
+                    return new Point();
+            }
         }
 
         //gets the job's site by JobName

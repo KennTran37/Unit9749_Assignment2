@@ -16,7 +16,7 @@ namespace u3184875_9746_Assignment2
         }
     }
 
-    public class Site : Node
+    public class Site : Node, ISpace
     {
         public SiteListBox listBox;
         public int maxAgents = 5;
@@ -43,6 +43,7 @@ namespace u3184875_9746_Assignment2
         }
 
         public bool HasSpace() => currentAgents.Count < maxAgents;
+        public bool HasAmount(int value) => throw new Exception("Method for Site Class cannot be used");
     }
 
     //holds the form elements which will display the site's infomation
@@ -94,7 +95,7 @@ namespace u3184875_9746_Assignment2
         }
     }
 
-    public struct MaterialBox
+    public struct MaterialBox : ISpace
     {
         public MaterialType materialType;
         public GroupBox materialBox;
@@ -175,4 +176,12 @@ namespace u3184875_9746_Assignment2
             return false;
         }
     }
+}
+
+
+//A simple interface where the methods are used to check if there is enough space or has an amount
+interface ISpace
+{
+    bool HasAmount(int value);
+    bool HasSpace();
 }
