@@ -20858,4 +20858,20 @@
         8AAAAABJRU5ErkJggg==
 </value>
   </data>
+  <data name="label6.Text" xml:space="preserve">
+    <value>Construction Cost: is the number of materials the Constructor 
+Agents will create to finish the construction
+
+Clicking on the Edge's Names will open a small box 
+where you can edit it's cost
+
+Double Clicking the agent's box will open a new form to 
+display it's inventory and jobs</value>
+  </data>
+  <metadata name="timer_Construction.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>56</value>
+  </metadata>
 </root>

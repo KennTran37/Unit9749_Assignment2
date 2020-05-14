@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,6 +11,8 @@ using System.Windows.Forms;
 
 namespace u3184875_9746_Assignment2
 {
+    //Form2 is used to display the Agent's Information
+    //Showing it's inventory, job progress, and it's jobs
     public partial class Form2 : Form
     {
         Color mainJobColor = Color.FromArgb(255, 69, 59);
@@ -20,6 +23,9 @@ namespace u3184875_9746_Assignment2
         List<Job> subJobs = new List<Job>();
         Agent agent;
         int index;
+
+        public PictureBox currentJobIcon => pictureBox_CurrentJob;
+        public ProgressBar currentJobProgressBar => progressBar_CurrentJob;
 
         public Form2(in Agent agent, int index)
         {
@@ -41,6 +47,12 @@ namespace u3184875_9746_Assignment2
                 HighlightSubJob(job);
 
             DisplayMaterialBoxes();
+
+            if (Form1.inst.IsRunning)
+            {
+                DisableJobBoxes();
+                DisableMaterialBoxes();
+            }
         }
 
         //highlights a box in red and sets the trackBar value to the job's skillLevel
@@ -262,8 +274,7 @@ namespace u3184875_9746_Assignment2
                 numeric_CurOre.Maximum = numeric_MaxOre.Value;
                 yPoint += 45;
             }
-            else
-                groupBox_Ore.Hide();
+
             //Ingot
             if (HasJob(JobName.Blacksmith) || HasJob(JobName.Constructor) || HasJob(JobName.Transporter))
             {
@@ -274,8 +285,7 @@ namespace u3184875_9746_Assignment2
                 numeric_CurIngot.Maximum = numeric_MaxIngot.Value;
                 yPoint += 45;
             }
-            else
-                groupBox_Ingot.Hide();
+
             //Wood
             if (HasJob(JobName.Logger) || HasJob(JobName.Transporter))
             {
@@ -286,8 +296,7 @@ namespace u3184875_9746_Assignment2
                 numeric_CurWood.Maximum = numeric_MaxWood.Value;
                 yPoint += 45;
             }
-            else
-                groupBox_Wood.Hide();
+
             //Plank
             if (HasJob(JobName.Carpenter) || HasJob(JobName.Constructor) || HasJob(JobName.Transporter))
             {
@@ -297,8 +306,49 @@ namespace u3184875_9746_Assignment2
                 numeric_CurPlank.Value = agent.Inventory.plank.Current;
                 numeric_CurPlank.Maximum = numeric_MaxPlank.Value;
             }
-            else
-                groupBox_Plank.Hide();
+
+        }
+
+        void DisableJobBoxes()
+        {
+            groupBox_JobBlacksmith.Enabled = false;
+            pictureBox_JobBlacksmith.Enabled = false;
+            trackBar_Blacksmith.Enabled = false;
+
+            groupBox_JobCarpenter.Enabled = false;
+            pictureBox_JobCarpenter.Enabled = false;
+            trackBar_Carpenter.Enabled = false;
+
+            groupBox_JobConstructor.Enabled = false;
+            pictureBox_JobConstructor.Enabled = false;
+            trackBar_Constructor.Enabled = false;
+
+            groupBox_JobLogger.Enabled = false;
+            pictureBox_JobLogger.Enabled = false;
+            trackBar_Logger.Enabled = false;
+
+            groupBox_JobMiner.Enabled = false;
+            pictureBox_JobMiner.Enabled = false;
+            trackBar_Miner.Enabled = false;
+
+            groupBox_JobTransporter.Enabled = false;
+            pictureBox_JobTransporter.Enabled = false;
+            trackBar_Transporter.Enabled = false;
+        }
+
+        void DisableMaterialBoxes()
+        {
+            numeric_CurIngot.Enabled = false;
+            numeric_MaxIngot.Enabled = false;
+
+            numeric_CurPlank.Enabled = false;
+            numeric_MaxPlank.Enabled = false;
+
+            numeric_CurWood.Enabled = false;
+            numeric_MaxWood.Enabled = false;
+
+            numeric_CurOre.Enabled = false;
+            numeric_MaxOre.Enabled = false;
         }
 
         bool HasJob(JobName job)

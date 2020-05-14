@@ -31,10 +31,6 @@
             this.pictureBox_Site = new System.Windows.Forms.PictureBox();
             this.label_SiteName = new System.Windows.Forms.Label();
             this.groupBox_Agents = new System.Windows.Forms.GroupBox();
-            this.groupBox6 = new System.Windows.Forms.GroupBox();
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.label10 = new System.Windows.Forms.Label();
-            this.pictureBox6 = new System.Windows.Forms.PictureBox();
             this.groupBox_Ore = new System.Windows.Forms.GroupBox();
             this.numeric_MaxOre = new System.Windows.Forms.NumericUpDown();
             this.numeric_CurOre = new System.Windows.Forms.NumericUpDown();
@@ -62,9 +58,6 @@
             this.numeric_MaxWorkers = new System.Windows.Forms.NumericUpDown();
             this.label9 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Site)).BeginInit();
-            this.groupBox_Agents.SuspendLayout();
-            this.groupBox6.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).BeginInit();
             this.groupBox_Ore.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numeric_MaxOre)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numeric_CurOre)).BeginInit();
@@ -106,48 +99,12 @@
             // groupBox_Agents
             // 
             this.groupBox_Agents.AutoSize = true;
-            this.groupBox_Agents.Controls.Add(this.groupBox6);
             this.groupBox_Agents.Location = new System.Drawing.Point(189, 3);
             this.groupBox_Agents.Name = "groupBox_Agents";
             this.groupBox_Agents.Size = new System.Drawing.Size(238, 444);
             this.groupBox_Agents.TabIndex = 14;
             this.groupBox_Agents.TabStop = false;
             this.groupBox_Agents.Text = "Current Agents";
-            // 
-            // groupBox6
-            // 
-            this.groupBox6.Controls.Add(this.progressBar1);
-            this.groupBox6.Controls.Add(this.label10);
-            this.groupBox6.Controls.Add(this.pictureBox6);
-            this.groupBox6.Location = new System.Drawing.Point(6, 370);
-            this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(200, 55);
-            this.groupBox6.TabIndex = 0;
-            this.groupBox6.TabStop = false;
-            // 
-            // progressBar1
-            // 
-            this.progressBar1.Location = new System.Drawing.Point(50, 32);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(144, 12);
-            this.progressBar1.TabIndex = 1;
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(50, 10);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(66, 13);
-            this.label10.TabIndex = 1;
-            this.label10.Text = "Agent Name";
-            // 
-            // pictureBox6
-            // 
-            this.pictureBox6.Location = new System.Drawing.Point(4, 10);
-            this.pictureBox6.Name = "pictureBox6";
-            this.pictureBox6.Size = new System.Drawing.Size(40, 40);
-            this.pictureBox6.TabIndex = 0;
-            this.pictureBox6.TabStop = false;
             // 
             // groupBox_Ore
             // 
@@ -513,11 +470,8 @@
             this.Name = "Form3";
             this.Text = "Site Information Editor";
             this.TopMost = true;
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form3_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Site)).EndInit();
-            this.groupBox_Agents.ResumeLayout(false);
-            this.groupBox6.ResumeLayout(false);
-            this.groupBox6.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).EndInit();
             this.groupBox_Ore.ResumeLayout(false);
             this.groupBox_Ore.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numeric_MaxOre)).EndInit();
@@ -575,9 +529,5 @@
         private System.Windows.Forms.PictureBox pictureBox4;
         private System.Windows.Forms.NumericUpDown numeric_MaxWorkers;
         private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.GroupBox groupBox6;
-        private System.Windows.Forms.ProgressBar progressBar1;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.PictureBox pictureBox6;
     }
 }

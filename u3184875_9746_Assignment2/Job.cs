@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace u3184875_9746_Assignment2
@@ -45,23 +46,24 @@ namespace u3184875_9746_Assignment2
             storageSite = Form1.inst.GetSite(NodeType.StorageSite);
         }
 
-        public abstract Task ProgressJob();
+        public abstract Task ProgressJob(Agent.UpdateProgress progress, CancellationToken ct);
         //Checks if the site has enough space for the materials that agent will put in
-        public abstract bool SpaceForAgentMaterial();
-        public virtual Task DeliverMaterial() => null;
-        public virtual Task TakeOutMaterial() => null;
+        public virtual Task DeliverMaterial(Agent.UpdateProgress progress, CancellationToken ct) => null;
+        public virtual Task TakeOutMaterial(Agent.UpdateProgress progress, CancellationToken ct) => null;
         //used by crafters to see if both the site's and agent's inventory has enough materials to craft
+        public abstract bool SpaceForAgentMaterial();
         public virtual bool HasEnoughMaterial() => true;
     }
 
     class BlackSmith : JobBase
     {
         public BlackSmith(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override async Task ProgressJob()
+        public override async Task ProgressJob(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Delay(jobTimeDelay, ct);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 //if agent should take out materials from inventory is False and site has materials || take out materials from inventory is True and agent's inventory has materials
                 if (!takeMatFromAgentInvent && jobSite.inventory.ore.TryTakeOutMaterial() || takeMatFromAgentInvent && agentInventory.ore.TryTakeOutMaterial())
                     if (!jobSite.inventory.ingot.TryPutInMaterial())
@@ -81,11 +83,12 @@ namespace u3184875_9746_Assignment2
     class Carpenter : JobBase
     {
         public Carpenter(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override async Task ProgressJob()
+        public override async Task ProgressJob(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Delay(jobTimeDelay, ct);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 //if agent should take out materials from inventory is False and site has materials || take out materials from inventory is True and agent's inventory has materials
                 if (!takeMatFromAgentInvent && jobSite.inventory.wood.TryTakeOutMaterial() || takeMatFromAgentInvent && agentInventory.wood.TryTakeOutMaterial())
                     if (!jobSite.inventory.plank.TryPutInMaterial())
@@ -105,11 +108,12 @@ namespace u3184875_9746_Assignment2
     class Logger : JobBase
     {
         public Logger(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override async Task ProgressJob()
+        public override async Task ProgressJob(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < collectNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Delay(jobTimeDelay, ct);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 //if there isn't any space within the site's inventory
                 if (!jobSite.inventory.wood.TryPutInMaterial())
                     agentInventory.wood.TryPutInMaterial(); //put it into the agent's inventory
@@ -122,11 +126,12 @@ namespace u3184875_9746_Assignment2
     class Miner : JobBase
     {
         public Miner(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override async Task ProgressJob()
+        public override async Task ProgressJob(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < collectNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Delay(jobTimeDelay, ct);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 //if there isn't any space within the site's inventory
                 if (!jobSite.inventory.ore.TryPutInMaterial())
                     agentInventory.ore.TryPutInMaterial(); //put it into the agent's inventory
@@ -139,7 +144,7 @@ namespace u3184875_9746_Assignment2
     class Delivery : JobBase
     {
         public Delivery(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override Task ProgressJob() => null;
+        public override Task ProgressJob(Agent.UpdateProgress progress, CancellationToken ct) => null;
 
         public override bool SpaceForAgentMaterial() => jobSite.HasSpace();
 
@@ -159,11 +164,12 @@ namespace u3184875_9746_Assignment2
             return true;
         }
 
-        public override async Task TakeOutMaterial()
+        public override async Task TakeOutMaterial(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Delay(jobTimeDelay, ct);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Wood:
@@ -186,11 +192,12 @@ namespace u3184875_9746_Assignment2
             }
         }
 
-        public override async Task DeliverMaterial()
+        public override async Task DeliverMaterial(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < putInNumMaterials; i++)
             {
                 await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Wood:
@@ -217,11 +224,12 @@ namespace u3184875_9746_Assignment2
     class Builder : JobBase
     {
         public Builder(Inventory agentInventory, Site jobSite) : base(agentInventory, jobSite) { }
-        public override async Task ProgressJob()
+        public override async Task ProgressJob(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < takeOutNumMaterials; i++)
             {
-                await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Delay(jobTimeDelay, ct);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 if (jobSite.inventory.ingot.TryTakeOutMaterial() && jobSite.inventory.plank.TryTakeOutMaterial())
                     continue;   //add one to construction progression
             }
@@ -230,11 +238,12 @@ namespace u3184875_9746_Assignment2
         public override bool SpaceForAgentMaterial() => jobSite.HasSpace();
         public override bool HasEnoughMaterial() => jobSite.inventory.ingot.HasAmount(takeOutNumMaterials) && jobSite.inventory.plank.HasAmount(takeOutNumMaterials);
 
-        public override async Task TakeOutMaterial()
+        public override async Task TakeOutMaterial(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < TakeOutAmount; i++)
             {
                 await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Plank:
@@ -249,11 +258,12 @@ namespace u3184875_9746_Assignment2
             }
         }
 
-        public override async Task DeliverMaterial()
+        public override async Task DeliverMaterial(Agent.UpdateProgress progress, CancellationToken ct)
         {
             for (int i = 0; i < putInNumMaterials; i++)
             {
                 await Task.Delay(jobTimeDelay, Form1.inst.cts.Token);
+                await Task.Run(() => { progress.Invoke(i); }, ct);
                 switch (MaterialToDeliver)
                 {
                     case MaterialType.Plank:

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -18,7 +19,19 @@ namespace u3184875_9746_Assignment2
         //this is because Point can only take in Integers and not decimal values
 
         protected Job currentJob;
-        public JobName GetCurrentJobName => currentJob.jobName;
+        public Job CurrentJob
+        {
+            set
+            {
+                currentJob = value.Equals(new Job()) ? mainJob : value;
+                if (listBox.progressJob != null)
+                    listBox.progressJob.Image = IconPath.GetIcon(currentJob.jobName);
+                if (form2CurrentJobIcon != null)
+                    form2CurrentJobIcon.Image = IconPath.GetIcon(currentJob.jobName);
+            }
+        }
+
+        public JobName CurrentJobName => currentJob.jobName;
         public Job mainJob { get; set; }
         public Job[] subJobs { get; set; }
 
@@ -38,7 +51,12 @@ namespace u3184875_9746_Assignment2
 
         public PictureBox agentIcon; //used to display the location of the agent when they are moving on the map
         public AgentListBox listBox;
-        public ProgressBar siteProgressBar;
+        PictureBox form2CurrentJobIcon;
+        ProgressBar form2currentJobBar;
+        public ProgressBar form3Bar;
+
+        public delegate void UpdateProgress(int value);
+        protected UpdateProgress updateProgressHandler;
 
         //used to determine which node to take that is within the angle
         const double viewAngle = 50;
@@ -50,6 +68,7 @@ namespace u3184875_9746_Assignment2
             this.name = name;
             inventory = new Inventory(0, 10);
             mainJob = new Job(JobName.Blacksmith, new BlackSmith(inventory, Form1.inst.GetSite(JobName.Blacksmith)), 5);
+            CurrentJob = mainJob;
         }
 
         //Used to reassign the agents classes
@@ -62,10 +81,11 @@ namespace u3184875_9746_Assignment2
 
             agentIcon = agent.agentIcon;
             listBox = agent.listBox;
-            siteProgressBar = agent.siteProgressBar;
+            form3Bar = agent.form3Bar;
 
             listBox.agentBox.DoubleClick -= agent.DisplayAgentInformation;
             listBox.agentBox.DoubleClick += DisplayAgentInformation;
+            CurrentJob = mainJob;
         }
 
         //Initialize the agent when user presses start 
@@ -75,8 +95,31 @@ namespace u3184875_9746_Assignment2
 
             blackListJobs = new List<JobName>();
             currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
-            currentJob = mainJob;
+            CurrentJob = mainJob;
+
+            updateProgressHandler += UpdateProgressBars;
             FindJob();
+        }
+
+        public void UpdateProgressBars(int value)
+        {
+            if (form2currentJobBar != null)
+            {
+                if (form2currentJobBar.InvokeRequired)
+                    form2currentJobBar.Invoke(new Action(() => { form2currentJobBar.Value = value; }));
+                else form2currentJobBar.Value = value;
+            }
+
+            if (form3Bar != null)
+            {
+                if (form3Bar.InvokeRequired)
+                    form3Bar.Invoke(new Action(() => { form3Bar.Value = value; }));
+                else form3Bar.Value = value;
+            }
+
+            if (listBox.progressBar.InvokeRequired)
+                listBox.progressBar.Invoke(new Action(() => { listBox.progressBar.Value = value; }));
+            else listBox.progressBar.Value = value;
         }
 
         //Finding a job the agent can do based on their skill level if agent can't do its main job
@@ -86,13 +129,14 @@ namespace u3184875_9746_Assignment2
                 SetDeliverySite();
             else if (blackListJobs.Contains(mainJob.jobName))
             {   //if agent can't do main job search through the sub jobs
-                Job[] sortedSub = subJobs.OrderByDescending(o => o.skillLevel).ToArray();
+                //Job[] sortedSub = subJobs.OrderByDescending(o => o.skillLevel).ToArray();
+                Job[] sortedSub = (from job in subJobs orderby job.skillLevel descending select job).ToArray();
                 foreach (var job in sortedSub)
                     if (!blackListJobs.Contains(job.jobName))
                     {
                         Site jobSite = Form1.inst.GetSite(job.jobName);
                         targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                        currentJob = job;
+                        CurrentJob = job;
                         break;
                     }
             }
@@ -100,7 +144,7 @@ namespace u3184875_9746_Assignment2
             {
                 Site jobSite = Form1.inst.GetSite(mainJob.jobName);
                 targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
-                currentJob = mainJob;
+                CurrentJob = mainJob;
             }
 
             PathFinding();
@@ -124,7 +168,7 @@ namespace u3184875_9746_Assignment2
                 blackListJobs.Clear();
         }
 
-        //Checks the conditions to do the job before doing it
+        //Checks the conditions on what job the agent is doing and if the agent can do it
         protected virtual void StartJob()
         {
             try
@@ -133,7 +177,9 @@ namespace u3184875_9746_Assignment2
                     DeliveryJob();
                 else if (currentJob.jobClass.SpaceForAgentMaterial() && currentJob.jobClass.HasEnoughMaterial())
                 {   //checking if site has space for agent and materials and checking if the site/agent has enough materials to craft
-                    Task.Run(currentJob.jobClass.ProgressJob).Wait();
+                    currentJob.jobClass.jobSite.AddAgent(this);
+                    Task.Run(() => currentJob.jobClass.ProgressJob(updateProgressHandler, Form1.inst.cts.Token)).Wait();
+                    currentJob.jobClass.jobSite.RemoveAgent(this);
                     blackListJobs.Clear();
                 }
                 else
@@ -176,20 +222,22 @@ namespace u3184875_9746_Assignment2
             //if site has space for agent
             if (currentJob.jobClass.SpaceForAgentMaterial())
             {
+                currentJob.jobClass.jobSite.AddAgent(this);
                 if (!deliveringMaterial && StorageHasMaterial(out MaterialBox box))
                 {   //taking out materials from the storage site
                     currentJob.jobClass.MaterialToDeliver = box.materialType;
-                    Task.Run(currentJob.jobClass.TakeOutMaterial).Wait();
+                    Task.Run(() => currentJob.jobClass.TakeOutMaterial(updateProgressHandler, Form1.inst.cts.Token)).Wait();
                     deliveringMaterial = true;
                 }
                 else if (deliveringMaterial)
                 {   //delivering the materials to the target site
-                    Task.Run(currentJob.jobClass.DeliverMaterial).Wait();
+                    Task.Run(() => currentJob.jobClass.DeliverMaterial(updateProgressHandler, Form1.inst.cts.Token)).Wait();
                     //set the jobSite back to it's default site which is StorageSite for Transporters
                     currentJob.jobClass.jobSite = Form1.inst.GetSite(NodeType.StorageSite);
                     deliveringMaterial = false;
                     blackListJobs.Clear();
                 }
+                currentJob.jobClass.jobSite.RemoveAgent(this);
             }
         }
 
@@ -498,6 +546,9 @@ namespace u3184875_9746_Assignment2
                 Form2 form2 = new Form2(this, Form1.inst.GetAgentIndex(this));
                 form2.Name = $"Form2_{GetHashCode()}";
                 form2.Show();
+                form2currentJobBar = form2.currentJobProgressBar;
+                form2CurrentJobIcon = form2.currentJobIcon;
+                listBox.progressJob.Image = form2CurrentJobIcon.Image = IconPath.GetIcon(currentJob.jobName);
             }
         }
 

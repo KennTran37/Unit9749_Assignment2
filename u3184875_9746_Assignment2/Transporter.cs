@@ -31,6 +31,8 @@ namespace u3184875_9746_Assignment2
             blacklistSites = new List<NodeType>();
             SetTargetSite(NodeType.StorageSite);
             currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
+
+            updateProgressHandler += UpdateProgressBars;
             FindJob();
         }
 
@@ -76,28 +78,35 @@ namespace u3184875_9746_Assignment2
             targetSite = new Destination<Site>(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(type));
         }
 
-        //Checks if the agent is at the site to deliver or take out materials
+        //Checks if there is space for the agent and if the agent is at the site to deliver or take out materials
         protected override void StartJob()
         {
             try
             {
-                if (!deliveringMaterial)
+                if (mainJob.jobClass.jobSite.HasSpace())
                 {
-                    if (mainJob.SiteNodeType == NodeType.MainSite) //if agent is at the main site then go back to the storage site
-                        SetTargetSite(NodeType.StorageSite);
-                    else if (CanSelectMaterial())
+                    currentJob.jobClass.jobSite.AddAgent(this);
+                    if (!deliveringMaterial)
                     {
-                        Task.Run(mainJob.jobClass.TakeOutMaterial).Wait(Form1.inst.cts.Token);
-                        //blacklist the site so that the agent doesn't go back to it
-                        blacklistSites.Add(currentNode.node.nodeType);
-                        deliveringMaterial = true;
+                        if (mainJob.SiteNodeType == NodeType.MainSite) //if agent is at the main site then go back to the storage site
+                            SetTargetSite(NodeType.StorageSite);
+                        else if (CanSelectMaterial())
+                        {
+                            Task.Run(() => mainJob.jobClass.TakeOutMaterial(updateProgressHandler, Form1.inst.cts.Token)).Wait();
+                            //blacklist the site so that the agent doesn't go back to it
+                            blacklistSites.Add(currentNode.node.nodeType);
+                            deliveringMaterial = true;
+                        }
                     }
+                    else
+                    {
+                        Task.Run(() => mainJob.jobClass.DeliverMaterial(updateProgressHandler, Form1.inst.cts.Token)).Wait();
+                        deliveringMaterial = false;
+                    }
+                    currentJob.jobClass.jobSite.RemoveAgent(this);
                 }
                 else
-                {
-                    Task.Run(mainJob.jobClass.DeliverMaterial).Wait(Form1.inst.cts.Token);
-                    deliveringMaterial = false;
-                }
+                    blacklistSites.Add(currentNode.node.nodeType);
                 FindJob();
             }
             catch (Exception) { }
@@ -132,17 +141,6 @@ namespace u3184875_9746_Assignment2
                 return false;
             }
             return true;
-        }
-
-        //Same code but Form2's constructor will take in the Transporter class instead of Agent class
-        public override void DisplayAgentInformation(object sender, EventArgs e)
-        {
-            if (!Form1.inst.AgentFormAlreadyOpened(GetHashCode().ToString()))
-            {   //assign the form's name to the agent's unqiue hashcode so that the User can not open it twice.
-                Form2 form2 = new Form2(this, Form1.inst.GetAgentIndex(this));
-                form2.Name = $"Form2_{GetHashCode()}";
-                form2.Show();
-            }
         }
     }
 }

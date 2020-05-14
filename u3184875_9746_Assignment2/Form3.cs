@@ -5,14 +5,18 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace u3184875_9746_Assignment2
 {
+    //Form3 is used to display the Site's Information
+    //Showing it's inventory and the agents that are in the site
     public partial class Form3 : Form
     {
         Site site;
+        List<CurrentAgentBox> agentBoxes = new List<CurrentAgentBox>();
 
         public Form3(Site site)
         {
@@ -22,40 +26,103 @@ namespace u3184875_9746_Assignment2
             ShowMaterialBoxes();
 
             pictureBox_Site.Image = IconPath.GetIcon(site.nodeType);
+            numeric_MaxWorkers.Value = site.maxAgents;
             label_SiteName.Text = site.name;
+
+            this.site.refreshHandler += RefreshCurrentAgentList;
+
+            for (int i = 0; i < site.maxAgents; i++)
+            {
+                CurrentAgentBox newAgentBox = new CurrentAgentBox(0);
+                groupBox_Agents.Controls.Add(newAgentBox.groupBox);
+                newAgentBox.groupBox.Hide();
+                agentBoxes.Add(newAgentBox);
+            }
 
             for (int i = 0; i < site.currentAgents.Count; i++)
             {
                 int yPoint = i > 1 ? i * 56 : 19;
-                groupBox_Agents.Controls.Add(AgentBox(site.currentAgents[i], yPoint));
+                UpdateListInfo(i, site.currentAgents[i], yPoint);
+            }
+
+            //for (int i = 0; i < site.maxAgents; i++)
+            //{
+            //    int yPoint = 0;
+            //    CurrentAgentBox newAgentBox = new CurrentAgentBox(yPoint);
+
+            //    if (i >= site.currentAgents.Count)
+            //    {
+            //        groupBox_Agents.Controls.Add(newAgentBox.groupBox);
+            //        newAgentBox.groupBox.Hide();
+            //        agentBoxes.Add(newAgentBox);
+            //        continue;
+            //    }
+
+            //    yPoint = i > 1 ? i * 56 : 19;
+            //    agentBoxes.Add(newAgentBox);
+            //    UpdateListInfo(i, site.currentAgents[i], yPoint);
+            //    groupBox_Agents.Controls.Add(newAgentBox.groupBox);
+            //}
+
+            if (Form1.inst.IsRunning)
+                DisableInteractions();
+        }
+
+        void RefreshCurrentAgentList()
+        {
+            for (int i = 0; i < agentBoxes.Count; i++)
+            {
+                if (i >= site.currentAgents.Count)
+                {
+                    agentBoxes[i].groupBox.Invoke(new Action(() => agentBoxes[i].groupBox.Hide()));
+                    continue;
+                }
+
+                int yPoint = i > 0 ? i * 56 + 19 : 19;
+                UpdateListInfo(i, site.currentAgents[i], yPoint);
             }
         }
 
-        GroupBox AgentBox(Agent agent, int yPoint)
+        void UpdateListInfo(int i, Agent agent, int yPoint)
         {
-            GroupBox agentBox = new GroupBox();
-            agentBox.Location = new Point(6, yPoint);
-            agentBox.Size = new Size(200, 55);
+            if (agentBoxes[i].groupBox.InvokeRequired)
+            {
+                agentBoxes[i].groupBox.Invoke(new Action(() =>
+                {
+                    agentBoxes[i].groupBox.Location = new Point(6, yPoint);
+                    agentBoxes[i].groupBox.Show();
+                }));
+            }
+            else
+            {
+                agentBoxes[i].groupBox.Location = new Point(6, yPoint);
+                agentBoxes[i].groupBox.Show();
+            }
 
-            PictureBox icon = new PictureBox();
-            agentBox.Controls.Add(icon);
-            icon.Location = new Point(4, 10);
-            icon.SizeMode = PictureBoxSizeMode.Zoom;
-            icon.Image = IconPath.GetIcon(agent.GetCurrentJobName);
-            icon.Size = new Size(40, 40);
+            if (agentBoxes[i].jobIcon.InvokeRequired) agentBoxes[i].jobIcon.Invoke(new Action(() => agentBoxes[i].jobIcon.Image = IconPath.GetIcon(agent.CurrentJobName)));
+            else agentBoxes[i].jobIcon.Image = IconPath.GetIcon(agent.CurrentJobName);
 
-            Label name = new Label();
-            agentBox.Controls.Add(name);
-            name.Location = new Point(50, 10);
-            name.Text = agent.name;
+            if (agentBoxes[i].agentName.InvokeRequired) agentBoxes[i].agentName.Invoke(new Action(() => agentBoxes[i].agentName.Text = agent.name));
+            else agentBoxes[i].agentName.Text = agent.name;
 
-            ProgressBar bar = new ProgressBar();
-            agentBox.Controls.Add(bar);
-            bar.Location = new Point(50, 32);
-            bar.Size = new Size(144, 12);
-            agent.siteProgressBar = bar;
+            agent.form3Bar = agentBoxes[i].progressBar;
+        }
 
-            return agentBox;
+        void DisableInteractions()
+        {
+            numeric_MaxWorkers.Enabled = false;
+
+            numeric_CurIngot.Enabled = false;
+            numeric_MaxIngot.Enabled = false;
+
+            numeric_CurPlank.Enabled = false;
+            numeric_MaxPlank.Enabled = false;
+
+            numeric_CurWood.Enabled = false;
+            numeric_MaxWood.Enabled = false;
+
+            numeric_CurOre.Enabled = false;
+            numeric_MaxOre.Enabled = false;
         }
 
         void ShowMaterialBoxes()
@@ -132,5 +199,42 @@ namespace u3184875_9746_Assignment2
         #endregion
 
         private void numeric_MaxWorkers_ValueChanged(object sender, EventArgs e) => site.maxAgents = (int)numeric_MaxWorkers.Value;
+
+        private void Form3_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            this.site.refreshHandler -= RefreshCurrentAgentList;
+        }
+    }
+
+    public struct CurrentAgentBox
+    {
+        public GroupBox groupBox;
+        public PictureBox jobIcon;
+        public Label agentName;
+        public ProgressBar progressBar;
+
+        public CurrentAgentBox(int yPoint)
+        {
+            groupBox = new GroupBox();
+            groupBox.Location = new Point(6, yPoint);
+            groupBox.Size = new Size(200, 55);
+
+            jobIcon = new PictureBox();
+            groupBox.Controls.Add(jobIcon);
+            jobIcon.Location = new Point(4, 10);
+            jobIcon.SizeMode = PictureBoxSizeMode.Zoom;
+            jobIcon.Size = new Size(40, 40);
+
+            agentName = new Label();
+            groupBox.Controls.Add(agentName);
+            agentName.Location = new Point(50, 10);
+            agentName.Size = new Size(66, 13);
+
+            progressBar = new ProgressBar();
+            groupBox.Controls.Add(progressBar);
+            progressBar.Location = new Point(50, 32);
+            progressBar.Size = new Size(144, 12);
+            progressBar.Maximum = 5;
+        }
     }
 }

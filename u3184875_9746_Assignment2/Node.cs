@@ -24,6 +24,9 @@ namespace u3184875_9746_Assignment2
 
         public Inventory inventory;
 
+        public delegate void RefreshForm3();
+        public RefreshForm3 refreshHandler;
+
         public Site(string name, NodeType nodeType, int maxAgents) : base(name, nodeType)
         {
             currentAgents = new List<Agent>();
@@ -40,6 +43,20 @@ namespace u3184875_9746_Assignment2
                 form3.Name = $"Form3_{name}";
                 form3.Show();
             }
+        }
+
+        public void AddAgent(Agent agent)
+        {
+            currentAgents.Add(agent);
+            refreshHandler?.Invoke();
+        }
+
+        public void RemoveAgent(Agent agent)
+        {
+            currentAgents.Remove(agent);
+            currentAgents.Remove(agent);
+            currentAgents.Remove(agent);
+            refreshHandler?.Invoke();
         }
 
         public bool HasSpace() => currentAgents.Count < maxAgents;

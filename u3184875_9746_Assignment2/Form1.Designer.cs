@@ -30,6 +30,7 @@ namespace u3184875_9746_Assignment2
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.panel_AgentList = new System.Windows.Forms.Panel();
             this.groupBox_Agents = new System.Windows.Forms.GroupBox();
@@ -88,6 +89,14 @@ namespace u3184875_9746_Assignment2
             this.label5 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label_Time = new System.Windows.Forms.Label();
+            this.numericUpDown_ConstructionCost = new System.Windows.Forms.NumericUpDown();
+            this.label10 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.progressBar_Construction = new System.Windows.Forms.ProgressBar();
+            this.timer_Construction = new System.Windows.Forms.Timer(this.components);
             this.groupBox_Agents.SuspendLayout();
             this.groupBox_Sites.SuspendLayout();
             this.groupBox_EdgeBox.SuspendLayout();
@@ -111,6 +120,9 @@ namespace u3184875_9746_Assignment2
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_NodeResidentStreet)).BeginInit();
             this.panel_Map.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_ConstructionCost)).BeginInit();
             this.SuspendLayout();
             // 
             // panel_AgentList
@@ -796,18 +808,100 @@ namespace u3184875_9746_Assignment2
             // 
             // groupBox2
             // 
-            this.groupBox2.Location = new System.Drawing.Point(959, 513);
+            this.groupBox2.Controls.Add(this.label6);
+            this.groupBox2.Location = new System.Drawing.Point(959, 504);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(302, 190);
+            this.groupBox2.Size = new System.Drawing.Size(302, 199);
             this.groupBox2.TabIndex = 20;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Information";
+            this.groupBox2.Text = "Notes";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(6, 25);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(293, 104);
+            this.label6.TabIndex = 22;
+            this.label6.Text = resources.GetString("label6.Text");
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.label_Time);
+            this.groupBox3.Controls.Add(this.numericUpDown_ConstructionCost);
+            this.groupBox3.Controls.Add(this.label10);
+            this.groupBox3.Controls.Add(this.label9);
+            this.groupBox3.Controls.Add(this.progressBar_Construction);
+            this.groupBox3.Location = new System.Drawing.Point(559, 504);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(394, 199);
+            this.groupBox3.TabIndex = 21;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Construction";
+            // 
+            // label_Time
+            // 
+            this.label_Time.AutoSize = true;
+            this.label_Time.Location = new System.Drawing.Point(4, 116);
+            this.label_Time.Name = "label_Time";
+            this.label_Time.Size = new System.Drawing.Size(36, 13);
+            this.label_Time.TabIndex = 4;
+            this.label_Time.Text = "Time: ";
+            // 
+            // numericUpDown_ConstructionCost
+            // 
+            this.numericUpDown_ConstructionCost.Location = new System.Drawing.Point(104, 27);
+            this.numericUpDown_ConstructionCost.Minimum = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
+            this.numericUpDown_ConstructionCost.Name = "numericUpDown_ConstructionCost";
+            this.numericUpDown_ConstructionCost.Size = new System.Drawing.Size(120, 20);
+            this.numericUpDown_ConstructionCost.TabIndex = 3;
+            this.numericUpDown_ConstructionCost.Value = new decimal(new int[] {
+            20,
+            0,
+            0,
+            0});
+            this.numericUpDown_ConstructionCost.ValueChanged += new System.EventHandler(this.numericUpDown_ConstructionCost_ValueChanged);
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(7, 29);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(90, 13);
+            this.label10.TabIndex = 2;
+            this.label10.Text = "Construction Cost";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(7, 58);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(48, 13);
+            this.label9.TabIndex = 1;
+            this.label9.Text = "Progress";
+            // 
+            // progressBar_Construction
+            // 
+            this.progressBar_Construction.Location = new System.Drawing.Point(7, 75);
+            this.progressBar_Construction.Name = "progressBar_Construction";
+            this.progressBar_Construction.Size = new System.Drawing.Size(382, 23);
+            this.progressBar_Construction.TabIndex = 0;
+            // 
+            // timer_Construction
+            // 
+            this.timer_Construction.Interval = 1000;
+            this.timer_Construction.Tick += new System.EventHandler(this.timer_Construction_Tick);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1264, 715);
+            this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label5);
@@ -848,6 +942,11 @@ namespace u3184875_9746_Assignment2
             this.panel_Map.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_ConstructionCost)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -911,6 +1010,14 @@ namespace u3184875_9746_Assignment2
         private Label label7;
         private Label label8;
         private GroupBox groupBox2;
+        private GroupBox groupBox3;
+        private Label label6;
+        private ProgressBar progressBar_Construction;
+        private Label label9;
+        private Label label10;
+        private NumericUpDown numericUpDown_ConstructionCost;
+        private Timer timer_Construction;
+        private Label label_Time;
     }
 }
 

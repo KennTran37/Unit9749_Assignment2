@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,8 +40,9 @@ namespace u3184875_9746_Assignment2
            new Site("Blacksmith Site", NodeType.BlacksmithSite, 5),
         };
         Edge[] edgeMap;
-        float constructionProgression;
-        float constructionTime;
+        int constructionCost = 20;
+        int constructionProgress = 0;
+        int constructionTime = 0;
         List<Agent> agentList = new List<Agent>();
 
         public bool IsRunning { get; set; }
@@ -51,6 +54,8 @@ namespace u3184875_9746_Assignment2
 
         Edge currentEdgeToEdit;
         Agent selectedAgent = null; //used to highlight the current selected agent for the User to remove
+
+        Random rdm = new Random();
 
         #region Setup Methods
         public Form1() => InitializeComponent();
@@ -114,6 +119,7 @@ namespace u3184875_9746_Assignment2
         public void UpdateAgent(Agent agent, int index)
         {
             agentList[index] = agent;
+            agentList[index].CurrentJob = new Job();
             agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
             agentList[index].listBox.agentLabel.Text = agent.name;
         }
@@ -139,8 +145,9 @@ namespace u3184875_9746_Assignment2
         //Creating the groupbox that will hold a summary of the agent's data
         GroupBox AgentPanel(Agent agent)
         {
+            panel_AgentList.VerticalScroll.Value = 0;
             GroupBox agentBox = new GroupBox();
-            int yPoint = agentList.Count > 1 ? ((agentList.Count - 1) * 70) + 3 : 3;
+            int yPoint = agentList.Count > 1 ? Math.Abs(agentList.Count - 1) * 73 : 3;
             agentBox.Location = new Point(3, yPoint);
             agentBox.Size = new Size(254, 70);
             agentBox.DoubleClick += agent.DisplayAgentInformation;
@@ -162,18 +169,20 @@ namespace u3184875_9746_Assignment2
             agentBox.Controls.Add(progressBox);
             progressBox.Location = new Point(62, 31);
             progressBox.Size = new Size(188, 32);
-            progressBox.Hide();
 
             ProgressBar progressBar = new ProgressBar();
             progressBox.Controls.Add(progressBar);
             progressBar.Location = new Point(3, 10);
             progressBar.Size = new Size(158, 17);
+            progressBar.Maximum = 5;
+            progressBar.Style = ProgressBarStyle.Continuous;
 
             PictureBox progressJob = new PictureBox();
             progressBox.Controls.Add(progressJob);
             progressJob.Location = new Point(165, 8);
             progressJob.Size = new Size(20, 20);
             progressJob.SizeMode = PictureBoxSizeMode.Zoom;
+            progressJob.Image = mainJob.Image;
 
             agent.listBox.agentBox = agentBox;
             agent.listBox.mainJob = mainJob;
@@ -478,19 +487,23 @@ namespace u3184875_9746_Assignment2
         }
 
         #region Button Events 
-        //Starts the agents
+        //Starts the construction
         private void button_Start_Click(object sender, EventArgs e)
         {
             if (IsRunning)
                 return;
 
+            button_AddAgent.Enabled = false;
+            button_RemoveAgent.Enabled = false;
+
+            //Copying agent's and site's inventory 
             for (int i = 0; i < siteMap.Length; i++)
                 originalSiteInventories[i] = new Inventory(siteMap[i].inventory);
-
             originalAgentInventoies = new Inventory[agentList.Count];
             for (int i = 0; i < agentList.Count; i++)
                 originalAgentInventoies[i] = new Inventory(agentList[i].Inventory);
 
+            //creating a cancellation token to stop all Tasks when used
             cts = new CancellationTokenSource();
             IsRunning = true;
             for (int i = 0; i < agentList.Count; i++)
@@ -499,40 +512,47 @@ namespace u3184875_9746_Assignment2
                 Thread newThread = new Thread(startThread);
                 newThread.Start();
             }
+
+            numericUpDown_ConstructionCost.Enabled = false;
+            timer_Construction.Enabled = true;
         }
 
         private void button_Stop_Click(object sender, EventArgs e)
         {
             if (!IsRunning)
                 return;
+
+            button_AddAgent.Enabled = true;
+            button_RemoveAgent.Enabled = true;
+
             IsRunning = false;
             cts.Cancel();
+
+            for (int i = 0; i < agentList.Count; i++)
+                agentList[i].UpdateProgressBars(0);
+
+            constructionTime = 0;
+            timer_Construction.Enabled = false;
+            numericUpDown_ConstructionCost.Enabled = true;
 
             ResetInventoryData();
         }
 
         //Event called from pressing the button to create a new agent
-        private void button_AddAgent_Click(object sender, EventArgs e)
-        {
-            if (IsRunning)
-                return;
-
-            Agent newAgent = new Agent($"Agent {agentList.Count}");
-            agentList.Add(newAgent);
-            panel_AgentList.Controls.Add(AgentPanel(newAgent));
-        }
+        private void button_AddAgent_Click(object sender, EventArgs e) => CreateRandomAgent();
 
         //Remove an agent from the agentList and it's groupBox and reorganize the list
         private void button_RemoveAgent_Click(object sender, EventArgs e)
         {
-            if (selectedAgent == null || IsRunning)
+            if (selectedAgent == null)
                 return;
             groupBox_Agents.Controls.Remove(selectedAgent.listBox.agentBox);
             selectedAgent.listBox.agentBox.Dispose();
             agentList.Remove(selectedAgent);
+            panel_AgentList.VerticalScroll.Value = 0;
             //organize the agent's list
             for (int i = 0; i < agentList.Count; i++)
-                agentList[i].listBox.agentBox.Location = new Point(3, i > 0 ? (i * 75) + 3 : 3);
+                agentList[i].listBox.agentBox.Location = new Point(3, i > 0 ? (i * 70) + 3 : 3);
         }
 
         //Resets the sites and agent's inventory to before the construction
@@ -555,5 +575,79 @@ namespace u3184875_9746_Assignment2
             }
         }
         #endregion
+
+        #region Creating Random Agents
+        //creating an agent with random jobs
+        void CreateRandomAgent()
+        {
+            Agent newAgent = new Agent($"Agent {agentList.Count + 1}");
+            JobName mJobName = RandomMainJob();
+            newAgent.mainJob = new Job(mJobName, SetJobType(mJobName, newAgent), rdm.Next(1, 10));
+            if (newAgent.mainJob.jobName != JobName.Transporter)
+            {
+                int numOfSubJobs = rdm.Next(5);
+                List<Job> subJobs = new List<Job>();
+                for (int i = 0; i < numOfSubJobs; i++)
+                {
+                    JobName sJobName = RandomSubJob(mJobName, (from job in subJobs select job.jobName).ToArray());
+                    subJobs.Add(new Job(sJobName, SetJobType(sJobName, newAgent), rdm.Next(1, 10)));
+                }
+                newAgent.subJobs = subJobs.ToArray();
+            }
+
+            agentList.Add(newAgent);
+            panel_AgentList.Controls.Add(AgentPanel(newAgent));
+        }
+
+        JobName RandomMainJob()
+        {
+            JobName[] jobNames = Enum.GetValues(typeof(JobName)).Cast<JobName>().ToArray();
+            return jobNames[rdm.Next(jobNames.Length)];
+        }
+
+        JobName RandomSubJob(JobName mainJob, JobName[] subJobs)
+        {
+            JobName[] jobNames = Enum.GetValues(typeof(JobName)).Cast<JobName>().ToArray();
+            JobName job = jobNames[rdm.Next(jobNames.Length)];
+            if (subJobs.Contains(job) || job == mainJob)
+                return RandomSubJob(mainJob, subJobs);
+            return job;
+        }
+
+        JobBase SetJobType(JobName job, Agent agent)
+        {
+            switch (job)
+            {
+                case JobName.Carpenter:
+                    return new Carpenter(agent.Inventory, Form1.inst.GetSite(job));
+                case JobName.Logger:
+                    return new Logger(agent.Inventory, Form1.inst.GetSite(job));
+                case JobName.Blacksmith:
+                    return new BlackSmith(agent.Inventory, Form1.inst.GetSite(job));
+                case JobName.Miner:
+                    return new Miner(agent.Inventory, Form1.inst.GetSite(job));
+                case JobName.Transporter:
+                    return new Delivery(agent.Inventory, Form1.inst.GetSite(job));
+                case JobName.Constructor:
+                    return new Builder(agent.Inventory, Form1.inst.GetSite(job));
+            }
+            return null;
+        }
+        #endregion
+
+        public void IncreaseConstructionProgress()
+        {
+            if (constructionProgress == constructionCost)
+                button_Stop_Click(null, null);
+            progressBar_Construction.Value = ++constructionProgress;
+        }
+
+        private void numericUpDown_ConstructionCost_ValueChanged(object sender, EventArgs e) => constructionCost = (int)numericUpDown_ConstructionCost.Value;
+
+        private void timer_Construction_Tick(object sender, EventArgs e)
+        {
+            constructionTime++;
+            label_Time.Text = "Time: " + constructionTime.ToString();
+        }
     }
 }
