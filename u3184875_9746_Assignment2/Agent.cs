@@ -13,7 +13,6 @@ namespace u3184875_9746_Assignment2
     public class Agent
     {
         public string name = null;
-        public bool isTraveling = false;
         const float moveSpeed = 10f; // meters per second
         //slowest speed must be 4, any value lower then that then the calculations will be broken.
         //this is because Point can only take in Integers and not decimal values
@@ -129,11 +128,12 @@ namespace u3184875_9746_Assignment2
                 SetDeliverySite();
             else if (blackListJobs.Contains(mainJob.jobName))
             {   //if agent can't do main job search through the sub jobs
-                //Job[] sortedSub = subJobs.OrderByDescending(o => o.skillLevel).ToArray();
+                //sort the subJobs by descending order of the jobs' skillLevel
                 Job[] sortedSub = (from job in subJobs orderby job.skillLevel descending select job).ToArray();
+                //loop through the array to find the first job that isn't in the black list and assign the currentJob to that job
                 foreach (var job in sortedSub)
                     if (!blackListJobs.Contains(job.jobName))
-                    {
+                    {   
                         Site jobSite = Form1.inst.GetSite(job.jobName);
                         targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
                         CurrentJob = job;
@@ -146,7 +146,6 @@ namespace u3184875_9746_Assignment2
                 targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
                 CurrentJob = mainJob;
             }
-
             PathFinding();
         }
 
@@ -177,7 +176,7 @@ namespace u3184875_9746_Assignment2
                     DeliveryJob();
                 else if (currentJob.jobClass.SpaceForAgentMaterial() && currentJob.jobClass.HasEnoughMaterial())
                 {   //checking if site has space for agent and materials and checking if the site/agent has enough materials to craft
-                    currentJob.jobClass.jobSite.AddAgent(this);
+                    currentJob.jobClass.jobSite.AddAgent(this);     //add agent to site's currentAgent list
                     Task.Run(() => currentJob.jobClass.ProgressJob(updateProgressHandler, Form1.inst.cts.Token)).Wait();
                     currentJob.jobClass.jobSite.RemoveAgent(this);
                     blackListJobs.Clear();
@@ -213,7 +212,8 @@ namespace u3184875_9746_Assignment2
             }
         }
 
-        //Method is used when the agent has transporter as a subjob
+        //used when the agent has transporter as a subjob
+        //the agent will check the storage for the material with the most amount and then take out it to deliver
         protected void DeliveryJob()
         {
             if (AgentHasMaterials())
@@ -306,6 +306,7 @@ namespace u3184875_9746_Assignment2
                 return;
             }
 
+            //Reset the currentPath and loop through the sitePaths list to find a matching path
             currentPath = new Path();
             foreach (var path in sitePaths)
                 if (path.start == currentNode.node && path.end == targetSite.nodeTarget)
@@ -313,9 +314,8 @@ namespace u3184875_9746_Assignment2
 
             if (currentPath.Equals(new Path()))
             {   //creating a new path if there isn't one
-                Path newPath = new Path(currentNode.node, targetSite.nodeTarget, new List<Node>());
-                newPath.nodes.Add(currentNode.node);
-                currentPath = newPath;
+                currentPath = new Path(currentNode.node, targetSite.nodeTarget, new List<Node>());
+                currentPath.nodes.Add(currentNode.node);
                 FindNewPath();
                 return;
             }
@@ -330,11 +330,11 @@ namespace u3184875_9746_Assignment2
             {
                 List<Node> path = currentPath.nodes;
                 for (int i = 0; i < path.Count; i++)
-                {
+                {   //loop through each node and get it's position to travel to
                     Point destPoint = Form1.inst.GetNodeLocation(path[i].nodeType);
                     currentDestination = new Destination<Node>(path[i], destPoint);
                     Task.Run(MoveToDestination).Wait(Form1.inst.cts.Token);
-
+                    //when finished traveling, set the currentNode to the node
                     currentNode = new CurrentNode(path[i], destPoint);
                 }
                 StartJob();
@@ -423,8 +423,10 @@ namespace u3184875_9746_Assignment2
                 Node otherPoint = edge.GetOtherPoint(currentNode.node);
                 if (!currentPath.nodes.Contains(otherPoint))
                 {
+                    //if the other point is the targetSite
                     if (otherPoint.nodeType == targetSite.nodeTarget.nodeType)
                         return otherPoint;
+
                     double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
                     if (angleToPoint > leftAngle)
                     {
@@ -439,6 +441,12 @@ namespace u3184875_9746_Assignment2
                 }
             }
 
+            return GetShortestEdge(inViewEdges, connectedEdges, angleToTargetSite).GetOtherPoint(currentNode.node);
+        }
+
+        //Finding the shortest node if there are edges in inViewEdges list or find the closest edge by angle in connectedEdges array
+        Edge GetShortestEdge(List<Edge> inViewEdges, Edge[] connectedEdges, double angleToTargetSite)
+        {
             //loop through the edges within view and find the cheapest edge
             Edge shortestEdge = null;
             if (inViewEdges.Count > 0)
@@ -458,6 +466,8 @@ namespace u3184875_9746_Assignment2
                     if (!currentPath.nodes.Contains(otherPoint))
                     {
                         double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
+                        //subtracting the angleToPoint and closestAngle by angleToTargetSite to find which has a smaller value
+                        //the smaller the value, the closer the angle is to the angleToTargetSite
                         if (Math.Abs(angleToTargetSite - angleToPoint) < Math.Abs(angleToTargetSite - closestAngle))
                         {
                             closestAngle = angleToPoint;
@@ -466,8 +476,7 @@ namespace u3184875_9746_Assignment2
                     }
                 }
             }
-
-            return shortestEdge.GetOtherPoint(currentNode.node);
+            return shortestEdge;
         }
 
         //Reference https://answers.unity.com/questions/414829/any-one-know-maths-behind-this-movetowards-functio.html

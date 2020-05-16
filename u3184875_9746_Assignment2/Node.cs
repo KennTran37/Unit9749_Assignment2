@@ -87,6 +87,7 @@ namespace u3184875_9746_Assignment2
         public MaterialBox ore;
         public MaterialBox ingot;
 
+        //creating empty inventory
         public Inventory()
         {
             wood = new MaterialBox();
@@ -94,7 +95,7 @@ namespace u3184875_9746_Assignment2
             ore = new MaterialBox();
             ingot = new MaterialBox();
         }
-
+        //assigning amount into materials
         public Inventory(int current, int max)
         {
             wood = new MaterialBox(MaterialType.Wood, current, max);
@@ -102,16 +103,17 @@ namespace u3184875_9746_Assignment2
             ore = new MaterialBox(MaterialType.Ore, current, max);
             ingot = new MaterialBox(MaterialType.Ingot, current, max);
         }
-
-        public Inventory(Inventory invent)
+        //reassigning materials when the player stops the construction
+        public Inventory(Inventory inventory)
         {
-            wood = invent.wood;
-            plank = invent.plank;
-            ingot = invent.ingot;
-            ore = invent.ore;
+            wood = inventory.wood;
+            plank = inventory.plank;
+            ingot = inventory.ingot;
+            ore = inventory.ore;
         }
     }
 
+    //holds the information of each materials inside the inventory
     public struct MaterialBox : ISpace
     {
         public MaterialType materialType;
@@ -161,7 +163,8 @@ namespace u3184875_9746_Assignment2
                     SetCountText();
             }
         }
-
+        
+        //after the max or current values are changed, update the label
         void SetCountText()
         {
             if (label.InvokeRequired)

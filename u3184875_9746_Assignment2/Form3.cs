@@ -45,25 +45,6 @@ namespace u3184875_9746_Assignment2
                 UpdateListInfo(i, site.currentAgents[i], yPoint);
             }
 
-            //for (int i = 0; i < site.maxAgents; i++)
-            //{
-            //    int yPoint = 0;
-            //    CurrentAgentBox newAgentBox = new CurrentAgentBox(yPoint);
-
-            //    if (i >= site.currentAgents.Count)
-            //    {
-            //        groupBox_Agents.Controls.Add(newAgentBox.groupBox);
-            //        newAgentBox.groupBox.Hide();
-            //        agentBoxes.Add(newAgentBox);
-            //        continue;
-            //    }
-
-            //    yPoint = i > 1 ? i * 56 : 19;
-            //    agentBoxes.Add(newAgentBox);
-            //    UpdateListInfo(i, site.currentAgents[i], yPoint);
-            //    groupBox_Agents.Controls.Add(newAgentBox.groupBox);
-            //}
-
             if (Form1.inst.IsRunning)
                 DisableInteractions();
         }

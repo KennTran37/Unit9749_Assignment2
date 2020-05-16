@@ -495,6 +495,7 @@ namespace u3184875_9746_Assignment2
 
             button_AddAgent.Enabled = false;
             button_RemoveAgent.Enabled = false;
+            numeric_Edge.Enabled = false;
 
             //Copying agent's and site's inventory 
             for (int i = 0; i < siteMap.Length; i++)
@@ -524,6 +525,7 @@ namespace u3184875_9746_Assignment2
 
             button_AddAgent.Enabled = true;
             button_RemoveAgent.Enabled = true;
+            numeric_Edge.Enabled = true;
 
             IsRunning = false;
             cts.Cancel();
