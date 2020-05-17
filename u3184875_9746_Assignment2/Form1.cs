@@ -17,7 +17,7 @@ namespace u3184875_9746_Assignment2
     public partial class Form1 : Form
     {
         public static Form1 inst;
-         
+
         Node[] nodeMap = new Node[0];
         Site[] siteMap = new Site[0];
         Edge[] edgeMap;
@@ -48,6 +48,7 @@ namespace u3184875_9746_Assignment2
         {
             inst = this;
             increaseProgressHandle += IncreaseConstructionProgress;
+            progressBar_Construction.Maximum = constructionCost;
 
             CreateMaps();
             for (int i = 0; i < siteMap.Length; i++)
@@ -506,9 +507,10 @@ namespace u3184875_9746_Assignment2
             if (IsRunning)
                 return;
 
-            button_AddAgent.Enabled = false;
-            button_RemoveAgent.Enabled = false;
-            numeric_Edge.Enabled = false;
+            button_AddAgent.Invoke(new Action(() => { button_AddAgent.Enabled = false; }));
+            button_RemoveAgent.Invoke(new Action(() => { button_RemoveAgent.Enabled = false; }));
+            numeric_Edge.Invoke(new Action(() => { numeric_Edge.Enabled = false; }));
+            label_Finish.Invoke(new Action(() => { label_Finish.Visible = false; }));
 
             //Copying agent's and site's inventory 
             for (int i = 0; i < siteMap.Length; i++)
@@ -527,7 +529,7 @@ namespace u3184875_9746_Assignment2
                 newThread.Start();
             }
 
-            numericUpDown_ConstructionCost.Enabled = false;
+            numericUpDown_ConstructionCost.Invoke(new Action(() => { numericUpDown_ConstructionCost.Enabled = false; }));
             timer_Construction.Enabled = true;
         }
 
@@ -535,20 +537,24 @@ namespace u3184875_9746_Assignment2
         {
             if (!IsRunning)
                 return;
+            StopProgress();
+        }
 
-            button_AddAgent.Enabled = true;
-            button_RemoveAgent.Enabled = true;
-            numeric_Edge.Enabled = true;
-
+        void StopProgress()
+        {
             IsRunning = false;
             cts.Cancel();
+
+            button_AddAgent.Invoke(new Action(() => { button_AddAgent.Enabled = true; }));
+            button_RemoveAgent.Invoke(new Action(() => { button_RemoveAgent.Enabled = true; }));
+            numeric_Edge.Invoke(new Action(() => { numeric_Edge.Enabled = true; }));
 
             for (int i = 0; i < agentList.Count; i++)
                 agentList[i].UpdateProgressBars(0);
 
             constructionTime = 0;
             timer_Construction.Enabled = false;
-            numericUpDown_ConstructionCost.Enabled = true;
+            numericUpDown_ConstructionCost.Invoke(new Action(() => { numericUpDown_ConstructionCost.Enabled = true; }));
 
             constructionProgress = 0;
             progressBar_Construction.Invoke(new Action(() => { progressBar_Construction.Value = constructionProgress; }));
@@ -661,10 +667,17 @@ namespace u3184875_9746_Assignment2
         {
             progressBar_Construction.Invoke(new Action(() => { progressBar_Construction.Value = ++constructionProgress; }));
             if (constructionProgress == constructionCost)
-                button_Stop_Click(null, null);
+            {
+                label_Finish.Invoke(new Action(() => { label_Finish.Visible = true; }));
+                StopProgress();
+            }
         }
 
-        private void numericUpDown_ConstructionCost_ValueChanged(object sender, EventArgs e) => constructionCost = (int)numericUpDown_ConstructionCost.Value;
+        private void numericUpDown_ConstructionCost_ValueChanged(object sender, EventArgs e)
+        {
+            constructionCost = (int)numericUpDown_ConstructionCost.Value;
+            progressBar_Construction.Invoke(new Action(() => { progressBar_Construction.Maximum = constructionCost; }));
+        }
 
         private void timer_Construction_Tick(object sender, EventArgs e)
         {

@@ -97,6 +97,7 @@ namespace u3184875_9746_Assignment2
             this.label9 = new System.Windows.Forms.Label();
             this.progressBar_Construction = new System.Windows.Forms.ProgressBar();
             this.timer_Construction = new System.Windows.Forms.Timer(this.components);
+            this.label_Finish = new System.Windows.Forms.Label();
             this.groupBox_Agents.SuspendLayout();
             this.groupBox_Sites.SuspendLayout();
             this.groupBox_EdgeBox.SuspendLayout();
@@ -827,6 +828,7 @@ namespace u3184875_9746_Assignment2
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.label_Finish);
             this.groupBox3.Controls.Add(this.label_Time);
             this.groupBox3.Controls.Add(this.numericUpDown_ConstructionCost);
             this.groupBox3.Controls.Add(this.label10);
@@ -887,6 +889,7 @@ namespace u3184875_9746_Assignment2
             // progressBar_Construction
             // 
             this.progressBar_Construction.Location = new System.Drawing.Point(7, 75);
+            this.progressBar_Construction.Maximum = 20;
             this.progressBar_Construction.Name = "progressBar_Construction";
             this.progressBar_Construction.Size = new System.Drawing.Size(382, 23);
             this.progressBar_Construction.TabIndex = 0;
@@ -895,6 +898,17 @@ namespace u3184875_9746_Assignment2
             // 
             this.timer_Construction.Interval = 1000;
             this.timer_Construction.Tick += new System.EventHandler(this.timer_Construction_Tick);
+            // 
+            // label_Finish
+            // 
+            this.label_Finish.AutoSize = true;
+            this.label_Finish.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label_Finish.Location = new System.Drawing.Point(300, 165);
+            this.label_Finish.Name = "label_Finish";
+            this.label_Finish.Size = new System.Drawing.Size(79, 25);
+            this.label_Finish.TabIndex = 22;
+            this.label_Finish.Text = "FINISH";
+            this.label_Finish.Visible = false;
             // 
             // Form1
             // 
@@ -1018,6 +1032,7 @@ namespace u3184875_9746_Assignment2
         private NumericUpDown numericUpDown_ConstructionCost;
         private Timer timer_Construction;
         private Label label_Time;
+        private Label label_Finish;
     }
 }
 
