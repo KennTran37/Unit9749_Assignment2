@@ -1,0 +1,12 @@
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\bin\Release\u3184875_9746_Assignment2.exe.config
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\bin\Release\u3184875_9746_Assignment2.exe
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\bin\Release\u3184875_9746_Assignment2.pdb
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.Form1.resources
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.Form2.resources
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.Form3.resources
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.Properties.Resources.resources
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.csproj.GenerateResource.cache
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.csproj.CoreCompileInputs.cache
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.exe
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.pdb
+D:\Visual Studio Projects\Unit9749_Assignment2\u3184875_9746_Assignment2\obj\Release\u3184875_9746_Assignment2.csprojAssemblyReference.cache

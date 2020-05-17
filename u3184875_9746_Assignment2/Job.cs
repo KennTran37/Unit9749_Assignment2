@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,22 +7,25 @@ namespace u3184875_9746_Assignment2
 {
     public struct Job
     {
-        public Job(JobName jobName, JobBase jobClass, int skillLevel)
+        public Job(JobName jobName, JobBase jobClass, Bitmap jobIcon, int skillLevel)
         {
             this.jobName = jobName;
             this.jobClass = jobClass;
             this.skillLevel = skillLevel;
+            this.jobIcon = jobIcon;
         }
 
         public JobName jobName { get; set; }
         public JobBase jobClass { get; set; }
         public int skillLevel { get; set; }
         public NodeType SiteNodeType => jobClass.jobSite.nodeType;
+        public Bitmap jobIcon;
 
         public MaterialBox SiteIngot => jobClass.jobSite.inventory.ingot;
         public MaterialBox SitePlank => jobClass.jobSite.inventory.plank;
         public MaterialBox SiteWood => jobClass.jobSite.inventory.wood;
         public MaterialBox SiteOre => jobClass.jobSite.inventory.ore;
+        public Point SitePosition => jobClass.jobSite.position;
     }
 
 
@@ -231,11 +235,11 @@ namespace u3184875_9746_Assignment2
                 await Task.Delay(jobTimeDelay, ct);
                 await Task.Run(() => { progress.Invoke(i); }, ct);
                 if (jobSite.inventory.ingot.TryTakeOutMaterial() && jobSite.inventory.plank.TryTakeOutMaterial())
-                    continue;   //add one to construction progression
+                    Form1.inst.increaseProgressHandle.Invoke();
             }
         }
 
-        public override bool SpaceForAgentMaterial() => jobSite.HasSpace();
+        public override bool SpaceForAgentMaterial() => true;
         public override bool HasEnoughMaterial() => jobSite.inventory.ingot.HasAmount(takeOutNumMaterials) && jobSite.inventory.plank.HasAmount(takeOutNumMaterials);
 
         public override async Task TakeOutMaterial(Agent.UpdateProgress progress, CancellationToken ct)

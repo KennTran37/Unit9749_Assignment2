@@ -20,17 +20,17 @@ namespace u3184875_9746_Assignment2
         protected Job currentJob;
         public Job CurrentJob
         {
+            get => currentJob;
             set
             {
                 currentJob = value.Equals(new Job()) ? mainJob : value;
                 if (listBox.progressJob != null)
-                    listBox.progressJob.Image = IconPath.GetIcon(currentJob.jobName);
+                    listBox.progressJob.Image = currentJob.jobIcon;
                 if (form2CurrentJobIcon != null)
-                    form2CurrentJobIcon.Image = IconPath.GetIcon(currentJob.jobName);
+                    form2CurrentJobIcon.Image = currentJob.jobIcon;
             }
         }
 
-        public JobName CurrentJobName => currentJob.jobName;
         public Job mainJob { get; set; }
         public Job[] subJobs { get; set; }
 
@@ -66,7 +66,7 @@ namespace u3184875_9746_Assignment2
         {
             this.name = name;
             inventory = new Inventory(0, 10);
-            mainJob = new Job(JobName.Blacksmith, new BlackSmith(inventory, Form1.inst.GetSite(JobName.Blacksmith)), 5);
+            mainJob = new Job(JobName.Blacksmith, new BlackSmith(inventory, Form1.inst.GetSite(JobName.Blacksmith)), IconPath.blacksmith, 5);
             CurrentJob = mainJob;
         }
 
@@ -82,8 +82,11 @@ namespace u3184875_9746_Assignment2
             listBox = agent.listBox;
             form3Bar = agent.form3Bar;
 
-            listBox.agentBox.DoubleClick -= agent.DisplayAgentInformation;
-            listBox.agentBox.DoubleClick += DisplayAgentInformation;
+            if (listBox.agentBox != null)
+            {
+                listBox.agentBox.DoubleClick -= agent.DisplayAgentInformation;
+                listBox.agentBox.DoubleClick += DisplayAgentInformation;
+            }
             CurrentJob = mainJob;
         }
 
@@ -93,7 +96,7 @@ namespace u3184875_9746_Assignment2
             agentIcon = Form1.inst.CreateAgentIcon();
 
             blackListJobs = new List<JobName>();
-            currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
+            currentNode = new CurrentNode(mainJob.jobClass.jobSite, mainJob.SitePosition);
             CurrentJob = mainJob;
 
             updateProgressHandler += UpdateProgressBars;
@@ -133,17 +136,17 @@ namespace u3184875_9746_Assignment2
                 //loop through the array to find the first job that isn't in the black list and assign the currentJob to that job
                 foreach (var job in sortedSub)
                     if (!blackListJobs.Contains(job.jobName))
-                    {   
-                        Site jobSite = Form1.inst.GetSite(job.jobName);
-                        targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
+                    {
+                        Site jobSite = job.jobClass.jobSite;
+                        targetSite = new Destination<Site>(jobSite, jobSite.position);
                         CurrentJob = job;
                         break;
                     }
             }
             else  //assign the agent's job to its main job
             {
-                Site jobSite = Form1.inst.GetSite(mainJob.jobName);
-                targetSite = new Destination<Site>(jobSite, Form1.inst.GetNodeLocation(jobSite.nodeType));
+                Site jobSite = mainJob.jobClass.jobSite;
+                targetSite = new Destination<Site>(jobSite, jobSite.position);
                 CurrentJob = mainJob;
             }
             PathFinding();
@@ -154,8 +157,10 @@ namespace u3184875_9746_Assignment2
         {
             try
             {
-                await Task.Run(() => { while (!this.mainJob.jobClass.jobSite.HasSpace() && !this.mainJob.jobClass.HasEnoughMaterial()) { } }, Form1.inst.cts.Token);
-                StartJob();
+                //while there isn't enough materials, no space for agent, or no space for materials
+                //wait for 2 seconds before checking again
+                while (!mainJob.jobClass.HasEnoughMaterial() || !mainJob.jobClass.SpaceForAgentMaterial())
+                    await Task.Delay(2000, Form1.inst.cts.Token);
             }
             catch (Exception) { }
         }
@@ -180,16 +185,21 @@ namespace u3184875_9746_Assignment2
                     Task.Run(() => currentJob.jobClass.ProgressJob(updateProgressHandler, Form1.inst.cts.Token)).Wait();
                     currentJob.jobClass.jobSite.RemoveAgent(this);
                     blackListJobs.Clear();
+                    FindJob();
                 }
                 else
                 {
                     //if the agent does not have any sub jobs 
                     if (subJobs == null)
-                        WaitForSpace().Wait();
+                    {
+                        Task.Run(WaitForSpace).Wait();
+                        StartJob();
+                        return;
+                    }
                     else
                         BlackListCurrentJob();
+                    FindJob();
                 }
-                FindJob();
             }
             catch (Exception) { }
         }
@@ -237,8 +247,13 @@ namespace u3184875_9746_Assignment2
                     deliveringMaterial = false;
                     blackListJobs.Clear();
                 }
+                else
+                    BlackListCurrentJob();
                 currentJob.jobClass.jobSite.RemoveAgent(this);
             }
+            else
+                BlackListCurrentJob();
+            FindJob();
         }
 
         //searches for the material with the highest amount inside agent's inventory
@@ -331,7 +346,7 @@ namespace u3184875_9746_Assignment2
                 List<Node> path = currentPath.nodes;
                 for (int i = 0; i < path.Count; i++)
                 {   //loop through each node and get it's position to travel to
-                    Point destPoint = Form1.inst.GetNodeLocation(path[i].nodeType);
+                    Point destPoint = path[i].position;
                     currentDestination = new Destination<Node>(path[i], destPoint);
                     Task.Run(MoveToDestination).Wait(Form1.inst.cts.Token);
                     //when finished traveling, set the currentNode to the node
@@ -349,7 +364,7 @@ namespace u3184875_9746_Assignment2
             {
                 //get a neighbour node to travel to
                 Node closestNode = GetClosestNodeFromAngle();
-                Point destPoint = Form1.inst.GetNodeLocation(closestNode.nodeType);
+                Point destPoint = closestNode.position;
                 currentDestination = new Destination<Node>(closestNode, destPoint);
 
                 Task.Run(MoveToDestination).Wait(Form1.inst.cts.Token);
@@ -427,7 +442,7 @@ namespace u3184875_9746_Assignment2
                     if (otherPoint.nodeType == targetSite.nodeTarget.nodeType)
                         return otherPoint;
 
-                    double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
+                    double angleToPoint = AngleToNode(otherPoint.position);
                     if (angleToPoint > leftAngle)
                     {
                         //in the situation where rightAngle is over 360, we would need to add 360 to angleToNeighbour as it's angle would be in the range of 0 - 90
@@ -465,7 +480,7 @@ namespace u3184875_9746_Assignment2
                     Node otherPoint = edge.GetOtherPoint(currentNode.node);
                     if (!currentPath.nodes.Contains(otherPoint))
                     {
-                        double angleToPoint = AngleToNode(Form1.inst.GetNodeLocation(otherPoint.nodeType));
+                        double angleToPoint = AngleToNode(otherPoint.position);
                         //subtracting the angleToPoint and closestAngle by angleToTargetSite to find which has a smaller value
                         //the smaller the value, the closer the angle is to the angleToTargetSite
                         if (Math.Abs(angleToTargetSite - angleToPoint) < Math.Abs(angleToTargetSite - closestAngle))
@@ -557,7 +572,7 @@ namespace u3184875_9746_Assignment2
                 form2.Show();
                 form2currentJobBar = form2.currentJobProgressBar;
                 form2CurrentJobIcon = form2.currentJobIcon;
-                listBox.progressJob.Image = form2CurrentJobIcon.Image = IconPath.GetIcon(currentJob.jobName);
+                listBox.progressJob.Image = form2CurrentJobIcon.Image = currentJob.jobIcon;
             }
         }
 

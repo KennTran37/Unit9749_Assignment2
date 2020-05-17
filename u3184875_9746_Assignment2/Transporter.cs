@@ -22,7 +22,7 @@ namespace u3184875_9746_Assignment2
         List<NodeType> blacklistSites = new List<NodeType>();
 
         public Transporter(Agent agent) : base(agent) =>
-            mainJob = new Job(JobName.Transporter, new Delivery(inventory, Form1.inst.GetSite(JobName.Transporter)), agent.mainJob.skillLevel);
+            mainJob = new Job(JobName.Transporter, new Delivery(inventory, Form1.inst.GetSite(JobName.Transporter)), IconPath.transporter, agent.mainJob.skillLevel);
 
         public override void InitAgent()
         {
@@ -30,7 +30,7 @@ namespace u3184875_9746_Assignment2
 
             blacklistSites = new List<NodeType>();
             SetTargetSite(NodeType.StorageSite);
-            currentNode = new CurrentNode(mainJob.jobClass.jobSite, Form1.inst.GetNodeLocation(mainJob.SiteNodeType));
+            currentNode = new CurrentNode(mainJob.jobClass.jobSite, mainJob.SitePosition);
 
             updateProgressHandler += UpdateProgressBars;
             FindJob();
@@ -97,6 +97,8 @@ namespace u3184875_9746_Assignment2
                             blacklistSites.Add(currentNode.node.nodeType);
                             deliveringMaterial = true;
                         }
+                        else
+                            blacklistSites.Add(currentNode.node.nodeType);
                     }
                     else
                     {
@@ -115,8 +117,10 @@ namespace u3184875_9746_Assignment2
         //returns true if the site has space and materials, else return false and blacklist the site
         bool CanSelectMaterial()
         {
-            if (mainJob.SiteNodeType != NodeType.StorageSite && mainJob.jobClass.HasEnoughMaterial())
-            {   //if site has space for materials and dpending on the site, assign the materials to take out
+            if (mainJob.SiteNodeType == NodeType.StorageSite && StorageHasMaterial(out MaterialBox box))   //taking out the material with the most amount
+                MaterialToDeliver = box.materialType;
+            else if (mainJob.jobClass.HasEnoughMaterial())
+            {   //if site has space for materials and depending on the site (other then storageSite), assign the materials to take out
                 switch (currentNode.node.nodeType)
                 {
                     case NodeType.BlacksmithSite:
@@ -133,8 +137,6 @@ namespace u3184875_9746_Assignment2
                         break;
                 }
             }
-            else if (StorageHasMaterial(out MaterialBox box))
-                MaterialToDeliver = box.materialType;
             else //if site does not have enough materials to take out and site is not storage site
             {
                 blacklistSites.Add(currentNode.node.nodeType);

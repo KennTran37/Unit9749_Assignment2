@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace u3184875_9746_Assignment2
@@ -8,11 +9,13 @@ namespace u3184875_9746_Assignment2
     {
         public string name = null;
         public NodeType nodeType;
+        public Point position;
 
-        public Node(string nodeName, NodeType location)
+        public Node(string nodeName, NodeType type)
         {
             name = nodeName;
-            nodeType = location;
+            nodeType = type;
+            position = Form1.inst.GetNodeLocation(type);
         }
     }
 
@@ -53,8 +56,6 @@ namespace u3184875_9746_Assignment2
 
         public void RemoveAgent(Agent agent)
         {
-            currentAgents.Remove(agent);
-            currentAgents.Remove(agent);
             currentAgents.Remove(agent);
             refreshHandler?.Invoke();
         }
@@ -131,7 +132,8 @@ namespace u3184875_9746_Assignment2
             this.icon = icon;
             this.label = label;
             materialType = type;
-            Max = 20;
+            Max = 50;
+            Current = 5;
         }
 
         //used to assign agent inventory

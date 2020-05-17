@@ -80,8 +80,8 @@ namespace u3184875_9746_Assignment2
                 agentBoxes[i].groupBox.Show();
             }
 
-            if (agentBoxes[i].jobIcon.InvokeRequired) agentBoxes[i].jobIcon.Invoke(new Action(() => agentBoxes[i].jobIcon.Image = IconPath.GetIcon(agent.CurrentJobName)));
-            else agentBoxes[i].jobIcon.Image = IconPath.GetIcon(agent.CurrentJobName);
+            if (agentBoxes[i].jobIcon.InvokeRequired) agentBoxes[i].jobIcon.Invoke(new Action(() => agentBoxes[i].jobIcon.Image = agent.CurrentJob.jobIcon));
+            else agentBoxes[i].jobIcon.Image = agent.CurrentJob.jobIcon;
 
             if (agentBoxes[i].agentName.InvokeRequired) agentBoxes[i].agentName.Invoke(new Action(() => agentBoxes[i].agentName.Text = agent.name));
             else agentBoxes[i].agentName.Text = agent.name;

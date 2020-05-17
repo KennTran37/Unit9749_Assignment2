@@ -17,29 +17,11 @@ namespace u3184875_9746_Assignment2
     public partial class Form1 : Form
     {
         public static Form1 inst;
-
-        Node[] nodeMap = new Node[]
-        {
-           new Node("Resident Street", NodeType.ResidentStreetNode),
-           new Node("Forest Center", NodeType.ForestCenterNode),
-           new Node("Forest North", NodeType.ForestNorthNode),
-           new Node("Forest South", NodeType.ForestSouthNode),
-           new Node("Inter Street", NodeType.InterStreetNode),
-           new Node("Lux Street", NodeType.LuxStreetNode),
-           new Node("North Gate", NodeType.NorthGateNode),
-           new Node("South Gate", NodeType.SouthGateNode),
-           new Node("West Gate", NodeType.WestCornerNode)
-        };
-        Site[] siteMap = new Site[]
-         {
-           new Site("Main Site", NodeType.MainSite, 5),
-           new Site("Mine Site", NodeType.MiningSite, 5),
-           new Site("Forest Site", NodeType.ForestSite, 5),
-           new Site("Storage Site", NodeType.StorageSite, 5),
-           new Site("Carpenter Site", NodeType.CarpenterSite, 5),
-           new Site("Blacksmith Site", NodeType.BlacksmithSite, 5),
-        };
+         
+        Node[] nodeMap = new Node[0];
+        Site[] siteMap = new Site[0];
         Edge[] edgeMap;
+
         int constructionCost = 20;
         int constructionProgress = 0;
         int constructionTime = 0;
@@ -56,6 +38,8 @@ namespace u3184875_9746_Assignment2
         Agent selectedAgent = null; //used to highlight the current selected agent for the User to remove
 
         Random rdm = new Random();
+        public delegate void IncreaseProgress();
+        public IncreaseProgress increaseProgressHandle;
 
         #region Setup Methods
         public Form1() => InitializeComponent();
@@ -63,10 +47,39 @@ namespace u3184875_9746_Assignment2
         private void Form1_Load(object sender, EventArgs e)
         {
             inst = this;
-            CreateEdges();
+            increaseProgressHandle += IncreaseConstructionProgress;
 
+            CreateMaps();
             for (int i = 0; i < siteMap.Length; i++)
                 panel_SitesList.Controls.Add(SitePanel(siteMap[i], i));
+
+            CreateEdges();
+        }
+
+        void CreateMaps()
+        {
+            nodeMap = new Node[]
+            {
+                new Node("Resident Street", NodeType.ResidentStreetNode),
+                new Node("Forest Center", NodeType.ForestCenterNode),
+                new Node("Forest North", NodeType.ForestNorthNode),
+                new Node("Forest South", NodeType.ForestSouthNode),
+                new Node("Inter Street", NodeType.InterStreetNode),
+                new Node("Lux Street", NodeType.LuxStreetNode),
+                new Node("North Gate", NodeType.NorthGateNode),
+                new Node("South Gate", NodeType.SouthGateNode),
+                new Node("West Gate", NodeType.WestCornerNode)
+            };
+
+            siteMap = new Site[]
+            {
+                new Site("Main Site", NodeType.MainSite, 5),
+                new Site("Blacksmith Site", NodeType.BlacksmithSite, 5),
+                new Site("Carpenter Site", NodeType.CarpenterSite, 5),
+                new Site("Mine Site", NodeType.MiningSite, 5),
+                new Site("Forest Site", NodeType.ForestSite, 5),
+                new Site("Storage Site", NodeType.StorageSite, 5),
+            };
         }
 
         //assigning the edge's cost and connected nodes
@@ -120,7 +133,7 @@ namespace u3184875_9746_Assignment2
         {
             agentList[index] = agent;
             agentList[index].CurrentJob = new Job();
-            agentList[index].listBox.mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
+            agentList[index].listBox.mainJob.Image = agent.mainJob.jobIcon;
             agentList[index].listBox.agentLabel.Text = agent.name;
         }
 
@@ -158,7 +171,7 @@ namespace u3184875_9746_Assignment2
             mainJob.Location = new Point(6, 13);
             mainJob.Size = new Size(50, 50);
             mainJob.SizeMode = PictureBoxSizeMode.Zoom;
-            mainJob.Image = IconPath.GetIcon(agent.mainJob.jobName);
+            mainJob.Image = agent.mainJob.jobIcon;
 
             Label agentLabel = new Label();
             agentBox.Controls.Add(agentLabel);
@@ -537,6 +550,9 @@ namespace u3184875_9746_Assignment2
             timer_Construction.Enabled = false;
             numericUpDown_ConstructionCost.Enabled = true;
 
+            constructionProgress = 0;
+            progressBar_Construction.Invoke(new Action(() => { progressBar_Construction.Value = constructionProgress; }));
+
             ResetInventoryData();
         }
 
@@ -584,7 +600,11 @@ namespace u3184875_9746_Assignment2
         {
             Agent newAgent = new Agent($"Agent {agentList.Count + 1}");
             JobName mJobName = RandomMainJob();
-            newAgent.mainJob = new Job(mJobName, SetJobType(mJobName, newAgent), rdm.Next(1, 10));
+            if (mJobName == JobName.Transporter)
+                newAgent = new Transporter(newAgent);
+            if (mJobName == JobName.Constructor)
+                newAgent = new Constructor(newAgent);
+            newAgent.mainJob = new Job(mJobName, SetJobType(mJobName, newAgent), IconPath.GetIcon(mJobName), rdm.Next(1, 10));
             if (newAgent.mainJob.jobName != JobName.Transporter)
             {
                 int numOfSubJobs = rdm.Next(5);
@@ -592,7 +612,7 @@ namespace u3184875_9746_Assignment2
                 for (int i = 0; i < numOfSubJobs; i++)
                 {
                     JobName sJobName = RandomSubJob(mJobName, (from job in subJobs select job.jobName).ToArray());
-                    subJobs.Add(new Job(sJobName, SetJobType(sJobName, newAgent), rdm.Next(1, 10)));
+                    subJobs.Add(new Job(sJobName, SetJobType(sJobName, newAgent), IconPath.GetIcon(sJobName), rdm.Next(1, 10)));
                 }
                 newAgent.subJobs = subJobs.ToArray();
             }
@@ -616,32 +636,32 @@ namespace u3184875_9746_Assignment2
             return job;
         }
 
-        JobBase SetJobType(JobName job, Agent agent)
+        public JobBase SetJobType(JobName job, Agent agent)
         {
             switch (job)
             {
                 case JobName.Carpenter:
-                    return new Carpenter(agent.Inventory, Form1.inst.GetSite(job));
+                    return new Carpenter(agent.Inventory, GetSite(job));
                 case JobName.Logger:
-                    return new Logger(agent.Inventory, Form1.inst.GetSite(job));
+                    return new Logger(agent.Inventory, GetSite(job));
                 case JobName.Blacksmith:
-                    return new BlackSmith(agent.Inventory, Form1.inst.GetSite(job));
+                    return new BlackSmith(agent.Inventory, inst.GetSite(job));
                 case JobName.Miner:
-                    return new Miner(agent.Inventory, Form1.inst.GetSite(job));
+                    return new Miner(agent.Inventory, GetSite(job));
                 case JobName.Transporter:
-                    return new Delivery(agent.Inventory, Form1.inst.GetSite(job));
+                    return new Delivery(agent.Inventory, GetSite(job));
                 case JobName.Constructor:
-                    return new Builder(agent.Inventory, Form1.inst.GetSite(job));
+                    return new Builder(agent.Inventory, GetSite(job));
             }
             return null;
         }
         #endregion
 
-        public void IncreaseConstructionProgress()
+        void IncreaseConstructionProgress()
         {
+            progressBar_Construction.Invoke(new Action(() => { progressBar_Construction.Value = ++constructionProgress; }));
             if (constructionProgress == constructionCost)
                 button_Stop_Click(null, null);
-            progressBar_Construction.Value = ++constructionProgress;
         }
 
         private void numericUpDown_ConstructionCost_ValueChanged(object sender, EventArgs e) => constructionCost = (int)numericUpDown_ConstructionCost.Value;

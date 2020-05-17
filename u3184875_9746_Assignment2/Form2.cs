@@ -148,7 +148,7 @@ namespace u3184875_9746_Assignment2
 
             if (subJobs.Count == 0 || !SubJobsContains(job))
             {
-                Job newJob = new Job(job, SetJobType(job), bar.Value);
+                Job newJob = new Job(job, Form1.inst.SetJobType(job, agent), IconPath.GetIcon(job), bar.Value);
                 box.BackColor = subJobColor;
                 subJobs.Add(newJob);
             }
@@ -191,7 +191,8 @@ namespace u3184875_9746_Assignment2
                 subJobs.Remove(subJobs.Single(s => s.jobName == job));
 
             ClearOldMainJob(mainJob.jobName);
-            mainJob = new Job(job, SetJobType(job), bar.Value);
+            //mainJob = new Job(job, SetJobType(job), IconPath.GetIcon(job), bar.Value);           
+            mainJob = new Job(job, Form1.inst.SetJobType(job, agent), IconPath.GetIcon(job), bar.Value);
             box.BackColor = mainJobColor;
             DisplayMaterialBoxes();
         }
@@ -366,26 +367,6 @@ namespace u3184875_9746_Assignment2
             agent.mainJob = mainJob;
             agent.subJobs = subJobs.Count == 0 ? null : subJobs.ToArray();
             Form1.inst.UpdateAgent(agent, index);
-        }
-
-        JobBase SetJobType(JobName job)
-        {
-            switch (job)
-            {
-                case JobName.Carpenter:
-                    return new Carpenter(agent.Inventory, Form1.inst.GetSite(job));
-                case JobName.Logger:
-                    return new Logger(agent.Inventory, Form1.inst.GetSite(job));
-                case JobName.Blacksmith:
-                    return new BlackSmith(agent.Inventory, Form1.inst.GetSite(job));
-                case JobName.Miner:
-                    return new Miner(agent.Inventory, Form1.inst.GetSite(job));
-                case JobName.Transporter:
-                    return new Delivery(agent.Inventory, Form1.inst.GetSite(job));
-                case JobName.Constructor:
-                    return new Builder(agent.Inventory, Form1.inst.GetSite(job));
-            }
-            return null;
         }
 
         private void textBox_AgentName_TextChanged(object sender, EventArgs e) => agent.name = textBox_AgentName.Text;
