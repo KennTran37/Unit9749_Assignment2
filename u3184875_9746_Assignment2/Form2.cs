@@ -50,6 +50,7 @@ namespace u3184875_9746_Assignment2
 
             if (Form1.inst.IsRunning)
             {
+                textBox_AgentName.Enabled = false;
                 DisableJobBoxes();
                 DisableMaterialBoxes();
             }
@@ -62,27 +63,27 @@ namespace u3184875_9746_Assignment2
             {
                 case JobName.Carpenter:
                     groupBox_JobCarpenter.BackColor = mainJobColor;
-                    trackBar_Carpenter.Value = job.skillLevel;
+                    trackBar_Carpenter.Value = job.SkillLevel;
                     break;
                 case JobName.Logger:
                     groupBox_JobLogger.BackColor = mainJobColor;
-                    trackBar_Logger.Value = job.skillLevel;
+                    trackBar_Logger.Value = job.SkillLevel;
                     break;
                 case JobName.Blacksmith:
                     groupBox_JobBlacksmith.BackColor = mainJobColor;
-                    trackBar_Blacksmith.Value = job.skillLevel;
+                    trackBar_Blacksmith.Value = job.SkillLevel;
                     break;
                 case JobName.Miner:
                     groupBox_JobMiner.BackColor = mainJobColor;
-                    trackBar_Miner.Value = job.skillLevel;
+                    trackBar_Miner.Value = job.SkillLevel;
                     break;
                 case JobName.Transporter:
                     groupBox_JobTransporter.BackColor = mainJobColor;
-                    trackBar_Transporter.Value = job.skillLevel;
+                    trackBar_Transporter.Value = job.SkillLevel;
                     break;
                 case JobName.Constructor:
                     groupBox_JobConstructor.BackColor = mainJobColor;
-                    trackBar_Constructor.Value = job.skillLevel;
+                    trackBar_Constructor.Value = job.SkillLevel;
                     break;
             }
         }
@@ -94,27 +95,27 @@ namespace u3184875_9746_Assignment2
             {
                 case JobName.Carpenter:
                     groupBox_JobCarpenter.BackColor = subJobColor;
-                    trackBar_Carpenter.Value = job.skillLevel;
+                    trackBar_Carpenter.Value = job.SkillLevel;
                     break;
                 case JobName.Logger:
                     groupBox_JobLogger.BackColor = subJobColor;
-                    trackBar_Logger.Value = job.skillLevel;
+                    trackBar_Logger.Value = job.SkillLevel;
                     break;
                 case JobName.Blacksmith:
                     groupBox_JobBlacksmith.BackColor = subJobColor;
-                    trackBar_Blacksmith.Value = job.skillLevel;
+                    trackBar_Blacksmith.Value = job.SkillLevel;
                     break;
                 case JobName.Miner:
                     groupBox_JobMiner.BackColor = subJobColor;
-                    trackBar_Miner.Value = job.skillLevel;
+                    trackBar_Miner.Value = job.SkillLevel;
                     break;
                 case JobName.Transporter:
                     groupBox_JobTransporter.BackColor = subJobColor;
-                    trackBar_Transporter.Value = job.skillLevel;
+                    trackBar_Transporter.Value = job.SkillLevel;
                     break;
                 case JobName.Constructor:
                     groupBox_JobConstructor.BackColor = subJobColor;
-                    trackBar_Constructor.Value = job.skillLevel;
+                    trackBar_Constructor.Value = job.SkillLevel;
                     break;
             }
         }
@@ -123,11 +124,11 @@ namespace u3184875_9746_Assignment2
         void SkillLevelChange(JobName job, int index, TrackBar bar)
         {
             if (mainJob.jobName == job)
-                mainJob.skillLevel = bar.Value;
+                mainJob.SkillLevel = bar.Value;
             else if (SubJobsContains(job))
             {
                 Job jobInfo = subJobs[index];
-                jobInfo.skillLevel = bar.Value;
+                jobInfo.SkillLevel = bar.Value;
                 subJobs[index] = jobInfo;
             }
         }

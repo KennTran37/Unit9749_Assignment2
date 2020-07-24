@@ -1,10 +1,10 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace u3184875_9746_Assignment2
 {
+    //Holds information on the job and it's class
     public struct Job
     {
         public Job(JobName jobName, JobBase jobClass, Bitmap jobIcon, int skillLevel)
@@ -13,13 +13,22 @@ namespace u3184875_9746_Assignment2
             this.jobClass = jobClass;
             this.skillLevel = skillLevel;
             this.jobIcon = jobIcon;
+            SkillLevel = skillLevel;
         }
 
         public JobName jobName { get; set; }
         public JobBase jobClass { get; set; }
-        public int skillLevel { get; set; }
+        public int SkillLevel   //skill level determines how fast the agent will do its job
+        {
+            get => skillLevel; set
+            {
+                jobClass.jobTimeDelay = 5000 / value;  //5000 ms (5 seconds)
+                skillLevel = value;
+            }
+        }
+        int skillLevel;
         public NodeType SiteNodeType => jobClass.jobSite.nodeType;
-        public Bitmap jobIcon;
+        public Bitmap jobIcon { get; set; }
 
         public MaterialBox SiteIngot => jobClass.jobSite.inventory.ingot;
         public MaterialBox SitePlank => jobClass.jobSite.inventory.plank;
@@ -28,7 +37,7 @@ namespace u3184875_9746_Assignment2
         public Point SitePosition => jobClass.jobSite.position;
     }
 
-
+    //Holds the job's site and methods which are used in each derived class(job)
     public abstract class JobBase
     {
         protected Inventory agentInventory;
@@ -39,7 +48,7 @@ namespace u3184875_9746_Assignment2
         public int TakeOutAmount => takeOutNumMaterials;
         protected const int putInNumMaterials = 5;
         protected const int collectNumMaterials = 5;
-        protected const int jobTimeDelay = 1000; //ms
+        public int jobTimeDelay = 1000; //ms
         protected bool takeMatFromAgentInvent = false;
         public MaterialType MaterialToDeliver { get; set; }
 

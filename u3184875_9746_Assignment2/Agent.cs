@@ -132,7 +132,7 @@ namespace u3184875_9746_Assignment2
             else if (blackListJobs.Contains(mainJob.jobName))
             {   //if agent can't do main job search through the sub jobs
                 //sort the subJobs by descending order of the jobs' skillLevel
-                Job[] sortedSub = (from job in subJobs orderby job.skillLevel descending select job).ToArray();
+                Job[] sortedSub = (from job in subJobs orderby job.SkillLevel descending select job).ToArray();
                 //loop through the array to find the first job that isn't in the black list and assign the currentJob to that job
                 foreach (var job in sortedSub)
                     if (!blackListJobs.Contains(job.jobName))

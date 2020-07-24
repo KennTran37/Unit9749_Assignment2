@@ -20866,7 +20866,12 @@ Clicking on the Edge's Names will open a small box
 where you can edit it's cost
 
 Double Clicking the agent's box will open a new form to 
-display it's inventory and jobs</value>
+display it's inventory and jobs
+Single Clicking the site's box will open a new form to 
+display it's inventory and current agents at the site
+
+Skill level: will determine how quick the agent will do it's job.
+The higher the skill, the faster it is.</value>
   </data>
   <metadata name="timer_Construction.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>

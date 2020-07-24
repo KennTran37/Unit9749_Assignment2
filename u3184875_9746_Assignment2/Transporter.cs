@@ -22,7 +22,7 @@ namespace u3184875_9746_Assignment2
         List<NodeType> blacklistSites = new List<NodeType>();
 
         public Transporter(Agent agent) : base(agent) =>
-            mainJob = new Job(JobName.Transporter, new Delivery(inventory, Form1.inst.GetSite(JobName.Transporter)), IconPath.transporter, agent.mainJob.skillLevel);
+            mainJob = new Job(JobName.Transporter, new Delivery(inventory, Form1.inst.GetSite(JobName.Transporter)), IconPath.transporter, agent.mainJob.SkillLevel);
 
         public override void InitAgent()
         {

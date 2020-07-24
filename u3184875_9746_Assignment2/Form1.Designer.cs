@@ -820,9 +820,9 @@ namespace u3184875_9746_Assignment2
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(6, 25);
+            this.label6.Location = new System.Drawing.Point(6, 22);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(293, 104);
+            this.label6.Size = new System.Drawing.Size(293, 169);
             this.label6.TabIndex = 22;
             this.label6.Text = resources.GetString("label6.Text");
             // 

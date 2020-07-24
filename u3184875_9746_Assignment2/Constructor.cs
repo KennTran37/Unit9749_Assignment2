@@ -11,7 +11,7 @@ namespace u3184875_9746_Assignment2
         bool lookAtStorage = false;
 
         public Constructor(Agent agent) : base(agent) =>
-            mainJob = new Job(JobName.Constructor, new Delivery(inventory, Form1.inst.GetSite(JobName.Constructor)), IconPath.constructor, agent.mainJob.skillLevel);
+            mainJob = new Job(JobName.Constructor, new Delivery(inventory, Form1.inst.GetSite(JobName.Constructor)), IconPath.constructor, agent.mainJob.SkillLevel);
 
         protected override void FindJob()
         {
@@ -26,7 +26,7 @@ namespace u3184875_9746_Assignment2
             }
             else if (blackListJobs.Contains(mainJob.jobName))
             {   //if agent can't do main job search through the sub jobs
-                Job[] sortedSub = subJobs.OrderByDescending(o => o.skillLevel).ToArray();
+                Job[] sortedSub = subJobs.OrderByDescending(o => o.SkillLevel).ToArray();
                 foreach (var job in sortedSub)
                     if (!blackListJobs.Contains(job.jobName))
                     {
